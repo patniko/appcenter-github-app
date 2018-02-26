@@ -1,0 +1,11 @@
+{
+  "disabled": false,
+  "bindings": [
+    {
+      "name": "rereleaseTimer",
+      "type": "timerTrigger",
+      "direction": "in",
+      "schedule": "1 * * * * *"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+    "repos": [
+        {
+            "provider": "github",
+            "repo_owner": "repo-owner",
+            "repo_name": "repo-name",
+            "branch_template": "master",
+            "appcenter_owner_type": "users",
+            "appcenter_owner": "repo-owner",
+            "appcenter_app": "appname-ios"
+        },
+        {
+            "provider": "github",
+            "repo_owner": "repo-owner",
+            "repo_name": "repo-name",
+            "branch_template": "master",
+            "appcenter_owner_type": "users",
+            "appcenter_owner": "repo-owner",
+            "appcenter_app": "appname-android"
+        }
+    ]      
+}
+ 
