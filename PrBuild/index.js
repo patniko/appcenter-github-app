@@ -26,12 +26,16 @@ const startRepoBuild = function(repo_config, request_body) {
             log(`PR #${pull_request} was ${action} on '${branch}' trying to merge into '${target_branch}'...`);
             let new_branch_config = false;
             appCenterRequests.getBuildConfiguration(branch, appcenter_token, appcenter_owner, appcenter_app)
-                .then(() => {}, (error) => {
+                .then((branch_config) => {
+                    // TODO: insert all needed environmentVariables here and then perform POST update request for the curent branch_config
+                    return branch_config;
+                }, (error) => {
                     if (error.statusCode === 404) {
                         return appCenterRequests.getBuildConfiguration(branch_template, appcenter_token, appcenter_owner, appcenter_app)
                             .then(created_branch_config => {
                                 created_branch_config = JSON.parse(created_branch_config);
                                 new_branch_config = true;
+                                // TODO: insert all needed environmentVariables here
                                 return appCenterRequests.createPrBuildConfiguration(created_branch_config, branch, appcenter_token, appcenter_owner, appcenter_app);
                             });
                     } else {

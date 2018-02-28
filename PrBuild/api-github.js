@@ -11,7 +11,7 @@ module.exports = {
             state: 'pending',
             target_url: `https://appcenter.ms/${owner_type}/${owner}/apps/${app}/build/branches/${branch}`,
             description: 'Running build in App Center...',
-            context: 'continuous-integration/appcenter'
+            context: `continuous-integration/appcenter/${app}`
         };
 
         Object.assign(options, { method: 'POST', body: JSON.stringify(report) });
