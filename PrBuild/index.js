@@ -1,15 +1,15 @@
 const appCenterRequests = require('./api-appcenter');
 const githubRequests = require('./api-github');
 
-const startRepoBuild = function(repo_config, request_body) {
+const startRepoBuild = function (repo_config, request_body) {
     const appcenter_token = process.env['APP_CENTER_TOKEN'];
     if (!appcenter_token) {
         return Promise.reject('Environment variable "APP_CENTER_TOKEN" has not been specified. Ignore.');
     }
     switch (repo_config.provider) {
-    case 'github': break;
-    case 'vsts': break;
-    default: return Promise.reject(`Incorrect repo provider - "${repo_config.provider}", should be "github" or "vsts"`);
+        case 'github': break;
+        case 'vsts': break;
+        default: return Promise.reject(`Incorrect repo provider - "${repo_config.provider}", should be "github" or "vsts"`);
     }
     const action = request_body.action;
     const branch = request_body.pull_request.head.ref;
@@ -21,13 +21,37 @@ const startRepoBuild = function(repo_config, request_body) {
 
     const { repo_owner, repo_name, appcenter_owner, appcenter_app, branch_template, appcenter_owner_type } = repo_config;
     const repo_path = `${repo_owner}/${repo_name}`;
+    const createEnvVariablesOn = function (branch_config) {
+        const env_variables_map =
+            [["prbuild_repo_owner", repo_owner],
+            ["prbuild_repo_name", repo_name],
+            ["prbuild_appcenter_app", appcenter_app],
+            ["prbuild_appcenter_owner", appcenter_owner],
+            ["prbuild_appcenter_owner_type", appcenter_owner_type],
+            ["prbuild_GITHUB_TOKEN", github_token]];
+        if (typeof (branch_config.environmentVariables) == "undefined") {
+            branch_config.environmentVariables = [];
+            for (env_var of env_variables_map) {
+                branch_config.environmentVariables.push({ "name": env_var[0], "value": env_var[1] });
+            }
+        } else {
+            for (env_var of env_variables_map) {
+                if (!(branch_config.environmentVariables.some(elem => elem.name == env_var[0]))) {
+                    branch_config.environmentVariables.push({ "name": env_var[0], "value": env_var[1] });
+                }
+            }
+        }
+        return branch_config;
+    }
     return new Promise((resolve, reject) => {
         if (action === 'opened' || action === 'synchronize') {
             log(`PR #${pull_request} was ${action} on '${branch}' trying to merge into '${target_branch}'...`);
             let new_branch_config = false;
             appCenterRequests.getBuildConfiguration(branch, appcenter_token, appcenter_owner, appcenter_app)
                 .then((branch_config) => {
-                    // TODO: insert all needed environmentVariables here and then perform POST update request for the curent branch_config
+                    branch_config = JSON.parse(branch_config);
+                    branch_config = createEnvVariablesOn(branch_config);
+                    appCenterRequests.createPrBuildConfiguration(branch_config, branch, appcenter_token, appcenter_owner, appcenter_app);
                     return branch_config;
                 }, (error) => {
                     if (error.statusCode === 404) {
@@ -35,18 +59,38 @@ const startRepoBuild = function(repo_config, request_body) {
                             .then(created_branch_config => {
                                 created_branch_config = JSON.parse(created_branch_config);
                                 new_branch_config = true;
-                                // TODO: insert all needed environmentVariables here
+                                created_branch_config = createEnvVariablesOn(created_branch_config);
                                 return appCenterRequests.createPrBuildConfiguration(created_branch_config, branch, appcenter_token, appcenter_owner, appcenter_app);
-                            });
+                            },
+                                (error) => {
+                                    if (error.statusCode === 404) {
+                                        return Promise.reject("Error: 404 Not Found. Please check you have pasted valid appcenter owner, owner type and app name in config.json.")
+                                    } else if (error.statusCode == 401) {
+                                        return Promise.reject("Error: 401 Unauthorized. Could not login to appCenter. Please check you have pasted valid appcenter token in local.settings.json.");
+                                    } else {
+                                        return Promise.reject(error);
+                                    }
+                                });
+                    } else if (error.statusCode == 401) {
+                        return Promise.reject("Error: 401 Unauthorized. Could not login to appCenter. Please check you have pasted valid appcenter token in local.settings.json.");
                     } else {
                         return Promise.reject(error);
                     }
                 }).then(() => {
                     return appCenterRequests.startPrBuild(branch, sha, appcenter_token, appcenter_owner, appcenter_app);
-                }).then(() => {
+                }).then((options) => {
+                    options = JSON.parse(options);
                     switch (repo_config.provider) {
-                    case 'github': return githubRequests.reportGithubStatus(repo_path, branch, sha, github_token, appcenter_owner, appcenter_owner_type, appcenter_app);
-                    default: break;
+                        case 'github': return githubRequests.reportGithubStatus(repo_path, branch, sha, github_token, appcenter_owner, appcenter_owner_type, appcenter_app, options.buildNumber)
+                            .then(() => { },
+                                (error) => {
+                                    if (error.statusCode == 404 || error.statusCode == 401) {
+                                        return Promise.reject("Error sending status to github. Please check you have pasted valid github token, repo_owner and repo_name in local.settings.json and config.json.")
+                                    } else {
+                                        return Promise.reject(error);
+                                    }
+                                });
+                        default: break;
                     }
                 }).then(response => {
                     log(response);
@@ -68,7 +112,7 @@ const startRepoBuild = function(repo_config, request_body) {
     });
 };
 
-const processWebhookRequest = function(request) {
+const processWebhookRequest = function (request) {
     if (request.body && request.body.action) {
         const head_repo = request.body.pull_request.head.repo.full_name;
         const config = require('./config.json');
@@ -103,7 +147,7 @@ const processWebhookRequest = function(request) {
     }
 };
 
-let log = function () {};
+let log = function () { };
 
 const resolveContext = function (body, status) {
     this.res = { body: body, status: status };
