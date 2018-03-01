@@ -24,7 +24,7 @@ const startRepoBuild = function (repo_config, request_body) {
     const createEnvVariablesOn = function (branch_config) {
         const env_variables_map =
             [["PR_GITHUB_REPO", repo_owner + "/" + repo_name],
-            ["PR_APPCENTER_APP", appcenter_owner_type + "/" + appcenter_owner + "/" + appcenter_app],
+            ["PR_APPCENTER_APP", appcenter_owner_type + "/" + appcenter_owner + "/apps/" + appcenter_app],
             ["PR_GITHUB_TOKEN", github_token]];
         if (typeof (branch_config.environmentVariables) == "undefined") {
             branch_config.environmentVariables = [];
