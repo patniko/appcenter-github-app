@@ -46,13 +46,7 @@ const startRepoBuild = function (repo_config, request_body) {
             let new_branch_config = false;
             appCenterRequests.getBuildConfiguration(branch, appcenter_token, appcenter_owner, appcenter_app)
                 .then((branch_config) => {
-                    if (typeof (branch_config) == "undefined") {
-                        branch_config = {};
-                        branch_config.toolsets = {};
-                        branch_config.branch = {};
-                    } else {
-                        branch_config = JSON.parse(branch_config);
-                    }
+                    branch_config = JSON.parse(branch_config);
                     branch_config = createEnvVariablesOn(branch_config);
                     appCenterRequests.createPrBuildConfiguration(branch_config, branch, appcenter_token, appcenter_owner, appcenter_app);
                     return branch_config;
@@ -60,26 +54,39 @@ const startRepoBuild = function (repo_config, request_body) {
                     if (error.statusCode === 404) {
                         return appCenterRequests.getBuildConfiguration(branch_template, appcenter_token, appcenter_owner, appcenter_app)
                             .then(created_branch_config => {
-                                if (typeof (branch_config) == "undefined") {
-                                    created_branch_config = {};
-                                    created_branch_config.toolsets = {};
-                                    created_branch_config.branch = {};
-                                } else {
-                                    created_branch_config = JSON.parse(created_branch_config);
-                                }
+                                created_branch_config = JSON.parse(created_branch_config);
                                 new_branch_config = true;
                                 created_branch_config = createEnvVariablesOn(created_branch_config);
                                 return appCenterRequests.createPrBuildConfiguration(created_branch_config, branch, appcenter_token, appcenter_owner, appcenter_app);
-                            });
+                            },
+                                (error) => {
+                                    if (error.statusCode === 404) {
+                                        return Promise.reject("Error: 404 Not Found. Please check you have pasted valid appcenter owner, owner type and app name in config.json.")
+                                    } else if (error.statusCode == 401) {
+                                        return Promise.reject("Error: 401 Unauthorized. Could not login to appCenter. Please check you have pasted valid appcenter token in local.settings.json.");
+                                    } else {
+                                        return Promise.reject(error);
+                                    }
+                                });
+                    } else if (error.statusCode == 401) {
+                        return Promise.reject("Error: 401 Unauthorized. Could not login to appCenter. Please check you have pasted valid appcenter token in local.settings.json.");
                     } else {
-                        return Promise.reject(error.message);
+                        return Promise.reject(error);
                     }
                 }).then(() => {
                     return appCenterRequests.startPrBuild(branch, sha, appcenter_token, appcenter_owner, appcenter_app);
                 }).then((options) => {
                     options = JSON.parse(options);
                     switch (repo_config.provider) {
-                        case 'github': return githubRequests.reportGithubStatus(repo_path, branch, sha, github_token, appcenter_owner, appcenter_owner_type, appcenter_app, options.buildNumber);
+                        case 'github': return githubRequests.reportGithubStatus(repo_path, branch, sha, github_token, appcenter_owner, appcenter_owner_type, appcenter_app, options.buildNumber)
+                            .then(() => { },
+                                (error) => {
+                                    if (error.statusCode == 404 || error.statusCode == 401) {
+                                        return Promise.reject("Error sending status to github. Please check you have pasted valid github token, repo_owner and repo_name in local.settings.json and config.json.")
+                                    } else {
+                                        return Promise.reject(error);
+                                    }
+                                });
                         default: break;
                     }
                 }).then(response => {
