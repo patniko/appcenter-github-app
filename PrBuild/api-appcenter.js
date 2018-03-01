@@ -4,7 +4,6 @@ module.exports = {
     getBuildConfiguration: function (branch, token, owner, app) {
         const endpoint = `/branches/${branch}/config`;
         var options = BuildUrl(endpoint, token, owner, app);
-        var f = typeof (request(options));
         return request(options).then((branch_config) => { Promise.resolve(branch_config); }, (error) => {
             if (error.statusCode === 404) {
                 error.message = error.message + "Error: 404 Not Found. Please check you have pasted valid appcenter owner, owner type and app name in config.json.";
