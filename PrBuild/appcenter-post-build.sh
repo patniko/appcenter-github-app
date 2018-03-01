@@ -4,38 +4,35 @@
 # a successful build occurred against that sha. It can be used in conjunction
 # with the Azure Function to create a end to end PR check workflow or alone if
 # you only wish to check branches preconfigured for continuous builds in App Center.
-
-github_notify_build_passed() {
-  curl -H "Content-Type: application/json" \
-  -H "Authorization: token ${GITHUB_TOKEN}" \
-  -H "User-Agent: appcenter-ci" \
-  -H "Content-Type: application/json" \
-  --data '{
-          \"state\": "success",
-          \"target_url\": `https://appcenter.ms/${owner_type}/${owner}/apps/${app}/build/branches/${branch}`,
-          \"description\": "App Center build successfully created.",
-          \"context\": "continuous-integration/appcenter"
-        }' \
-        https://api.github.com/repos/Microsoft/appcenter-azure-functions/statuses/${sha}
+ 
+function parse_git_hash() {
+  git rev-parse HEAD 
 }
 
-github_notify_build_failed() {
+SHA=$(parse_git_hash)
+github_notify_build_state() {
+  STATE="\"success\""
+  DESCRIPTION="\"App Center build successfully created.\""
+  if [ "$1" != true ]; then 
+    STATE="\"failure\""
+    DESCRIPTION="\"Errors occurred during App Center build.\""
+  fi
   curl -H "Content-Type: application/json" \
-  -H "Authorization: token ${GITHUB_TOKEN}" \
+  -H "Authorization: token ${PR_GITHUB_TOKEN}" \
   -H "User-Agent: appcenter-ci" \
   -H "Content-Type: application/json" \
-  --data '{
-          \"state\": "failure",
-          \"target_url\": `https://appcenter.ms/${owner_type}/${owner}/apps/${app}/build/branches/${branch}`,
-          \"description\": "Errors occurred during App Center build.",
-          \"context\": "continuous-integration/appcenter"
-        }' \
-        https://api.github.com/repos/Microsoft/appcenter-azure-functions/statuses/${sha}
+  --data "{
+          \"state\": ${STATE},
+          \"target_url\": \"https://appcenter.ms/${PR_APPCENTER_APP}/build/branches/${APPCENTER_BRANCH}/builds/${APPCENTER_BUILD_ID}\",
+          \"description\": ${DESCRIPTION},
+          \"context\": \"appcenter-ci/${PR_APPCENTER_APP#*/*/apps/}\"
+        }" \
+       https://api.github.com/repos/${PR_GITHUB_REPO}/statuses/${SHA}
 }
 
 if [ "$AGENT_JOBSTATUS" != "Succeeded" ]; then
-    github_notify_build_failed
+    github_notify_build_state false
     exit 0
 fi
 
-github_notify_build_passed
+github_notify_build_state true
