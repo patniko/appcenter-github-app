@@ -9,7 +9,7 @@
 
 3. Update _GITHUB_TOKEN_ in `local.settings.json` with a valid [Github token](https://github.com/settings/tokens).
 
-4. Update the `config.json` file in th PrBuild folder.
+4. Update the `config.json` file.
 
 5. Run the Azure Function locally to verify releases are being processed correctly.
 
@@ -19,7 +19,7 @@
 
 7. Link the project to your subscription before running by navigating to the Azure portal, creating a new Function called PrBuild underneath a subscription and running the command below to link the two.
 
-```func azure functionapp fetch-app-settings PrBuild ```
+```func azure functionapp fetch-app-settings AppCenterFunction ```
 
 8. Configure a webhook under `https://github.com/<repo_owner>/<repo_name>/settings/hooks` with an url from the Azure portal. You can find it pressing `Get function url` button in the right corner at the top of the function code.
 
