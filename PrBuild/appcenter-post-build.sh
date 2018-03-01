@@ -10,37 +10,29 @@ function parse_git_hash() {
 }
 
 SHA=$(parse_git_hash)
-github_notify_build_passed() {
+github_notify_build_state() {
+  STATE="\"success\""
+  DESCRIPTION="\"App Center build successfully created.\""
+  if [ "$1" != true ]; then 
+    STATE="\"failure\""
+    DESCRIPTION="\"Errors occurred during App Center build.\""
+  fi
   curl -H "Content-Type: application/json" \
-  -H "Authorization: token ${prbuild_GITHUB_TOKEN}" \
+  -H "Authorization: token ${PR_GITHUB_TOKEN}" \
   -H "User-Agent: appcenter-ci" \
   -H "Content-Type: application/json" \
   --data "{
-          \"state\": \"success\",
-          \"target_url\": \"https://appcenter.ms/${prbuild_appcenter_owner_type}/${prbuild_appcenter_owner}/apps/${prbuild_appcenter_app}/build/branches/${APPCENTER_BRANCH}/builds/${APPCENTER_BUILD_ID}\",
-          \"description\": \"App Center build successfully created.\",
-          \"context\": \"appcenter-ci/${prbuild_appcenter_app}\"
+          \"state\": ${STATE},
+          \"target_url\": \"https://appcenter.ms/${PR_APPCENTER_APP}/build/branches/${APPCENTER_BRANCH}/builds/${APPCENTER_BUILD_ID}\",
+          \"description\": ${DESCRIPTION},
+          \"context\": \"appcenter-ci/${PR_APPCENTER_APP#*/*/apps/}\"
         }" \
-       https://api.github.com/repos/${prbuild_repo_owner}/${prbuild_repo_name}/statuses/${SHA}
-}
-
-github_notify_build_failed() {
-  curl -H "Content-Type: application/json" \
-  -H "Authorization: token ${prbuild_GITHUB_TOKEN}" \
-  -H "User-Agent: appcenter-ci" \
-  -H "Content-Type: application/json" \
-  --data "{
-          \"state\": \"failure\",
-          \"target_url\": \"https://appcenter.ms/${prbuild_appcenter_owner_type}/${prbuild_appcenter_owner}/apps/${prbuild_appcenter_app}/build/branches/${APPCENTER_BRANCH}/builds/${APPCENTER_BUILD_ID}\",
-          \"description\": \"Errors occurred during App Center build.\",
-          \"context\": \"appcenter-ci/${prbuild_appcenter_app}\"
-        }" \
-        https://api.github.com/repos/${prbuild_repo_owner}/${prbuild_repo_name}/statuses/${SHA}
+       https://api.github.com/repos/${PR_GITHUB_REPO}/statuses/${SHA}
 }
 
 if [ "$AGENT_JOBSTATUS" != "Succeeded" ]; then
-    github_notify_build_failed
+    github_notify_build_state false
     exit 0
 fi
 
-github_notify_build_passed
+github_notify_build_state true
