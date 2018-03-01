@@ -9,7 +9,7 @@ module.exports = {
 
         var report = {
             state: 'pending',
-            target_url: `https://appcenter.ms/${owner_type}/${owner}/apps/${app}/build/branches/${branch}/build/${buildNumber}`,
+            target_url: `https://appcenter.ms/${owner_type}/${owner}/apps/${app}/build/branches/${branch}/builds/${buildNumber}`,
             description: 'Running build in App Center...',
             context: `appcenter-ci/${app}`
         };
