@@ -46,10 +46,10 @@ const startRepoBuild = function (repo_config, request_body) {
             let new_branch_config = false;
             appCenterRequests.getBuildConfiguration(branch, appcenter_token, appcenter_owner, appcenter_app)
                 .then((branch_config) => {
-                    if (typeof(branch_config) == "undefined") {
-                       branch_config = {};
-                       branch_config.toolsets = {};
-                       branch_config.branch = {}; 
+                    if (typeof (branch_config) == "undefined") {
+                        branch_config = {};
+                        branch_config.toolsets = {};
+                        branch_config.branch = {};
                     } else {
                         branch_config = JSON.parse(branch_config);
                     }
@@ -60,7 +60,13 @@ const startRepoBuild = function (repo_config, request_body) {
                     if (error.statusCode === 404) {
                         return appCenterRequests.getBuildConfiguration(branch_template, appcenter_token, appcenter_owner, appcenter_app)
                             .then(created_branch_config => {
-                                created_branch_config = JSON.parse(created_branch_config);
+                                if (typeof (branch_config) == "undefined") {
+                                    created_branch_config = {};
+                                    created_branch_config.toolsets = {};
+                                    created_branch_config.branch = {};
+                                } else {
+                                    created_branch_config = JSON.parse(created_branch_config);
+                                }
                                 new_branch_config = true;
                                 created_branch_config = createEnvVariablesOn(created_branch_config);
                                 return appCenterRequests.createPrBuildConfiguration(created_branch_config, branch, appcenter_token, appcenter_owner, appcenter_app);
