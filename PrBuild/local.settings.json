@@ -10,7 +10,8 @@
         "WEBSITE_NODE_DEFAULT_VERSION": "6.5.0",
         "AzureWebJobsSecretStorageType": "disabled",
         "APP_CENTER_TOKEN": "",
-        "GITHUB_TOKEN": ""
+        "GITHUB_TOKEN": "",
+        "GITHUB_APPID": 9631
     },
     "ConnectionStrings": {}
 }

@@ -110,7 +110,34 @@ const startRepoBuild = function (repo_config, request_body) {
 };
 
 const processWebhookRequest = function (request) {
+    // Install/Uninstall Github App
     if (request.body && request.body.action) {
+
+        const github_appid = process.env['GITHUB_APPID'];
+        const github_key_location = "./appcenter.pem";
+
+        if((request.body.action == "created" || request.body.action == "deleted") && request.body.installation)
+        {
+            return Promise.resolve(`${request.body.action} Github app.<br><a href="${request.body.installation.html_url}">Click here to go back</a>`);
+            /*const createApp = require('github-app');
+        
+            // This will give us access 
+            const app = createApp({
+            id: 9631,
+            cert: require('fs').readFileSync('appcenter.pem')
+            });
+
+            // We can use this to query all the users that have it installed
+            app.asApp().then(github => {
+                console.log("Installations:")
+                github.integrations.getInstallations({}).then(console.log);
+            });*/
+        }   
+    }
+
+
+
+    if (request.body && request.body.action && request.body.pull_request) {
         const head_repo = request.body.pull_request.head.repo.full_name;
         const config = require('./config.json');
         const repos_configurations = config.repos.filter((repo) => {
