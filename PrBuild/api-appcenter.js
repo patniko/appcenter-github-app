@@ -7,10 +7,15 @@ module.exports = {
         return request(options);
     },
     createPrBuildConfiguration: function(config, branch, token, owner, app) {
-        // Disable distribute on build and change name over to new branch
+        // Force simulator build, disable distribute on build, signing 
+        // and change name over to new branch
         config.toolsets.distribution = {};
         config.branch.name = branch;
         config.trigger = 'continuous';
+        config.signed = false;
+        if(config.xamarin) {
+            config.isSimBuild = true;
+        }
 
         const options = BuildUrl(`/branches/${branch}/config`, token, owner, app);
         Object.assign(options, { method: 'POST', body: JSON.stringify(config) });
