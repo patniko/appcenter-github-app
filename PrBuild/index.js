@@ -1,5 +1,9 @@
 const appCenterRequests = require('./api-appcenter');
 const githubRequests = require('./api-github');
+const path = require('path');
+const fs = require('fs');
+const pem = fs.readFileSync(path.resolve(__dirname, './appcenter.pem'));
+const github_appid = process.env['GITHUB_APPID'];
 
 const startRepoBuild = function (repo_config, request_body) {
     const appcenter_token = process.env['APP_CENTER_TOKEN'];
@@ -16,6 +20,7 @@ const startRepoBuild = function (repo_config, request_body) {
     const sha = request_body.pull_request.head.sha;
     const target_branch = request_body.pull_request.base.ref;
     const pull_request = request_body.pull_request.id;
+    const installationId = request_body.installation.id;
 
     const github_token = process.env['GITHUB_TOKEN'];
 
@@ -77,16 +82,13 @@ const startRepoBuild = function (repo_config, request_body) {
                     return appCenterRequests.startPrBuild(branch, sha, appcenter_token, appcenter_owner, appcenter_app);
                 }).then((options) => {
                     options = JSON.parse(options);
+                    const app = githubRequests.createApp({
+                        id: github_appid,
+                        cert: pem
+                    });
                     switch (repo_config.provider) {
-                        case 'github': return githubRequests.reportGithubStatus(repo_path, branch, sha, github_token, appcenter_owner, appcenter_owner_type, appcenter_app, options.buildNumber)
-                            .then(() => { },
-                                (error) => {
-                                    if (error.statusCode == 404 || error.statusCode == 401) {
-                                        return Promise.reject("Error sending status to github. Please check you have pasted valid github token, repo_owner and repo_name in local.settings.json and config.json.")
-                                    } else {
-                                        return Promise.reject(error);
-                                    }
-                                });
+                        case 'github': return app.reportGithubStatus(
+                            repo_config.repo_owner, repo_config.repo_name, sha, appcenter_owner, appcenter_owner_type, appcenter_app, branch, options.buildNumber, installationId);
                         default: break;
                     }
                 }).then(response => {
@@ -110,34 +112,67 @@ const startRepoBuild = function (repo_config, request_body) {
 };
 
 const processWebhookRequest = function (request) {
+    // Install/Uninstall Github App
     if (request.body && request.body.action) {
-        const head_repo = request.body.pull_request.head.repo.full_name;
-        const config = require('./config.json');
-        const repos_configurations = config.repos.filter((repo) => {
-            return head_repo === `${repo.repo_owner}/${repo.repo_name}`;
-        });
-        if (repos_configurations.length) {
-            let build_promises = [];
-            for (let index = 0; index < repos_configurations.length; index++) {
-                const repo_config = repos_configurations[index];
-                build_promises.push(startRepoBuild(repo_config, request.body)
-                    .catch((error) => {
-                        log(error);
-                    })
-                );
-            }
-            return new Promise((resolve, reject) => {
-                Promise.all(build_promises)
-                    .then((...args) => {
-                        if (args.length) {
-                            resolve(args.join('; '));
-                        }
-                    }).catch((error) => {
-                        reject(error);
-                    });
+        if ((request.body.action == "created" || request.body.action == "deleted") && request.body.installation) {
+            return Promise.resolve(`${request.body.action} Github app.<br><a href="${request.body.installation.html_url}">Click here to go back</a>`);
+            /*const createApp = require('github-app');
+
+            // This will give us access 
+            const app = createApp({
+                id: github_appid,
+                cert: pem
             });
+
+            // We can use this to query all the users that have it installed
+            app.asApp().then(github => {
+                console.log("Installations:")
+                github.integrations.getInstallations({}).then(console.log);
+            });*/
+        }
+        if (request.body.action === 'opened' || request.body.action === 'synchronize') {
+            const head_repo = request.body.pull_request.head.repo.full_name;
+            try {
+                const app = githubRequests.createApp({
+                    id: github_appid,
+                    cert: pem
+                });
+                return app.getConfig(request.body.repository.owner.login, request.body.repository.name, request.body.installation.id).then((config) => {
+                    config = JSON.parse(Buffer.from(config.data.content, 'base64'));
+                    const url = config.url;
+
+                    const repos_configurations = config.repos.filter((repo) => {
+                        return head_repo === `${repo.repo_owner}/${repo.repo_name}`;
+                    });
+                    if (repos_configurations.length) {
+                        let build_promises = [];
+                        for (let index = 0; index < repos_configurations.length; index++) {
+                            const repo_config = repos_configurations[index];
+                            build_promises.push(startRepoBuild(repo_config, request.body)
+                                .catch((error) => {
+                                    log(error);
+                                })
+                            );
+                        }
+                        return new Promise((resolve, reject) => {
+                            Promise.all(build_promises)
+                                .then((...args) => {
+                                    if (args.length) {
+                                        resolve(args.join('; '));
+                                    }
+                                }).catch((error) => {
+                                    reject(error);
+                                });
+                        });
+                    } else {
+                        return Promise.resolve(`Webhook was triggered by ${head_repo}, but there is no such kind configuratio for this repo. Ignored.`);
+                    }
+                });
+            } catch (error) {
+                Promise.reject(error);
+            }
         } else {
-            return Promise.resolve(`Webhook was triggered by ${head_repo}, but there is no such kind configuratio for this repo. Ignored.`);
+            return Promise.reject('Unsupported action.');
         }
     } else {
         return Promise.reject('Please post a valid webhook payload.');
