@@ -9,7 +9,7 @@ Needs:
 Github App Flow:
 
 1) User adds App Center Github app. 
-2) Github punches out to https://appcenterfunctions.azurewebsites.net/api/PrBuild?installation_id=96957
+2) Github punches out to https://appcenterfunctions.azurewebsites.net/api/PrCheck?installation_id=96957
 3) Setup on end => we would store in the CosmosDB in the future.
 4) The PR webhook should now fire automatically for this user.
 

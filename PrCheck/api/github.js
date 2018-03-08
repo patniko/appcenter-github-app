@@ -1,7 +1,5 @@
-const request = require('request-promise');
-
 const octokit = require('@octokit/rest')();
-const jwt = require('jsonwebtoken')
+const jwt = require('jsonwebtoken');
 
 module.exports = {
     createApp: function ({ id, cert, debug = false }) {
@@ -16,7 +14,7 @@ module.exports = {
             return createToken(installationId).then(res => {
                 octokit.authenticate({ type: 'token', token: res.data.token });
                 return octokit;
-            })
+            });
         }
 
         // https://developer.github.com/early-access/integrations/authentication/#as-an-installation
@@ -28,13 +26,13 @@ module.exports = {
 
         function getConfig(username, repo, id) {
             return asInstallation(id).then(github => {
-                return github.repos.getContent({ owner: username, repo: repo, path: "prcheck_config.json" });
+                return github.repos.getContent({ owner: username, repo: repo, path: 'prcheck_config.json' });
             });
         }
 
-        function reportGithubStatus(github_owner, repo, sha, appcenter_owner, owner_type, app, branch, buildNumber, id) {
+        function reportGithubStatus(repo_name, sha, appcenter_owner, owner_type, app, branch, buildNumber, id) {
             return asInstallation(id).then(github => {
-                return github.repos.createStatus({ owner: github_owner, repo: repo, sha: sha,
+                return github.repos.createStatus({ owner: repo_name.split('/')[0], repo: repo_name.split('/')[1], sha: sha,
                     state: 'pending',
                     target_url: `https://appcenter.ms/${owner_type}/${appcenter_owner}/apps/${app}/build/branches/${branch}/builds/${buildNumber}`,
                     description: 'Running build in App Center...',
@@ -51,7 +49,7 @@ module.exports = {
             };
 
             // Sign with RSA SHA256
-            return jwt.sign(payload, cert, { algorithm: 'RS256' })
+            return jwt.sign(payload, cert, { algorithm: 'RS256' });
         }
 
         return { asApp, asInstallation, createToken, getConfig, reportGithubStatus };
