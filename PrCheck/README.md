@@ -3,7 +3,7 @@
 
 2. Put `appcenter-post-build.sh` in the location as specified [here](https://docs.microsoft.com/en-us/appcenter/build/custom/scripts/).
 
-3. Put `prcheck_config.json` in the root of your project, keeping the structure as follows: 
+3. Put `appcenter-pr.json` in the root of your project, keeping the structure as follows: 
 
 ```
 {

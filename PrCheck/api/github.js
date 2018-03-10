@@ -26,7 +26,7 @@ module.exports = {
 
         function getConfig(username, repo, id) {
             return asInstallation(id).then(github => {
-                return github.repos.getContent({ owner: username, repo: repo, path: 'prcheck_config.json' });
+                return github.repos.getContent({ owner: username, repo: repo, path: 'appcenter-pr.json' });
             });
         }
 
