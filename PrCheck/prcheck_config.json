@@ -1,0 +1,14 @@
+{
+    "appcenter_apps": [
+        {
+            "branch_template": "master",
+            "owner_name": "",
+            "app_name": ""
+        },
+        {
+            "branch_template": "master",
+            "owner_name": "",
+            "app_name": ""
+        }
+    ]
+}

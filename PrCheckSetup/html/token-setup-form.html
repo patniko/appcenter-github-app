@@ -1,0 +1,133 @@
+<body>
+    <input id="ghtoken" type="hidden" value="{0}">
+    <div class="wrapper">
+        <header role="heading">
+            <h3>PR Check Setup</h3>
+        </header>
+        <p id="comment">Create AppCenter API token using
+            <a href="https://appcenter.ms/settings/apitokens/create" target="_blank">this link</a>
+            and paste it below.
+        </p>
+        <input id="token" type="text" placeholder="Please paste your token here.">
+        <div id="wrapper_btn" class="button_wrapper">
+            <button role="button" onclick="save()" type="button">
+                <span>Save</span>
+            </button>
+        </div>
+        <div id="result"></div>
+    </div>
+</body>
+
+<style>
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Open Sans, Helvetica Neue, Helvetica, Arial, sans-serif;
+    }
+
+    #result {
+        width: 100%;
+        float: left;
+        text-align: center;
+        color: #0078d7;
+        margin-top: 5px;
+        font-size: 13px;
+        line-height: 15px;
+    }
+
+    a {
+        color: #005396;
+        font-weight: 400;
+        line-height: 20px;
+    }
+
+    .wrapper {
+        margin-top: 15%;
+    }
+
+    header {
+        text-align: center;
+    }
+
+    p {
+        text-align: center;
+    }
+
+    input {
+        margin-left: calc(50% - 235px);
+        width: 380px;
+        margin-top: 2px;
+        float: left;
+        line-height: 20px;
+        border: 1px solid #dedede;
+        font-size: 15px;
+        outline: none;
+        padding: 9px 11px;
+        box-sizing: border-box;
+        background-color: #f2f2f2;
+        color: rgba(0, 0, 0, .38)
+    }
+
+    .button_wrapper {
+        float: left;
+    }
+
+    button {
+        width: 90px;
+        font-weight: 600;
+        font-size: 15px;
+        padding: 10px 12px;
+        border: none;
+        border-radius: 2px;
+        line-height: 20px;
+        -webkit-transition: background 80ms linear;
+        transition: background 80ms linear;
+        min-width: 80px;
+        background-color: #0078d7;
+        color: #fff;
+        cursor: pointer;
+    }
+</style>
+<script>
+    var sent = false;
+    var link;
+    const loader = document.getElementById('result');
+    const github = document.getElementById('ghtoken');
+    const comment = document.getElementById('comment');
+    const button_save = document.getElementById('wrapper_btn');
+    const appcenter_token = document.getElementById('token');
+    function save() {
+        if (!sent) {
+            var gh_token = github.value;
+            var token = document.getElementById('token').value;
+            loader.textContent = "Please wait...";
+            send(btoa(token), gh_token);
+        } else {
+            location.href = link;
+        }
+    }
+
+    function send(token, gh_token) {
+        var http = new XMLHttpRequest();
+        var url = location.href;
+        var params = "token=" + token + "&ghtoken=" + gh_token;
+        http.open("POST", url, true);
+        http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+
+        http.onreadystatechange = function () {
+            if (http.readyState == 3 && http.status == 200) {
+                var installation;
+                loader.textContent = "";
+                if (http.responseText.startsWith('installation')) {
+                    installation = http.responseText.substr(13) || "";
+                    link = "https://github.com/settings/installations/" + installation;
+                    comment.outerHTML = "<p id='comment'>Successfully stored the token. You may now <a href='" + link + "'>go back</a> to the installed app.</p>";
+                    button_save.hidden = true;
+                    appcenter_token.hidden = true;
+                    sent = true;
+                } else {
+                    comment.textContent = http.responseText + " Try again.";
+                }
+            }
+        }
+        http.send(params);
+    }
+</script>
