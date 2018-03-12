@@ -37,6 +37,17 @@ module.exports = {
         const options = BuildUrl(`/branches/${branch}/config`, token, owner, app);
         Object.assign(options, { method: 'DELETE' });
         return request(options);
+    },
+    getBuilds: function(branch, token, owner, app) {
+        const options = BuildUrl(`/branches/${branch}/builds`, token, owner, app);
+        Object.assign(options, { method: 'GET' });
+        return request(options);
+    },
+    stopBuild: function(build_id, token, owner, app) {
+        const payload = { status: "cancelling" };
+        const options = BuildUrl(`/builds/${build_id}`, token, owner, app);
+        Object.assign(options, { method: 'PATCH' , body: JSON.stringify(payload)});
+        return request(options);
     }
 };
 

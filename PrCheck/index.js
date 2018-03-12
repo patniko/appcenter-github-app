@@ -8,7 +8,7 @@ const processWebhookRequest = function (request) {
                 case 'created': return Promise.resolve('Installing App Center GitHub app...');
                 case 'deleted': return appDelete(request.body.installation.id);
             }
-        } else if (request.body.pull_request && (request.body.action === 'opened' || request.body.action === 'synchronize')) {
+        } else if (request.body.pull_request && (request.body.action === 'opened' || request.body.action === 'synchronize' || request.body.action === 'closed')) {
             return pullRequest(request, log);
         } else {
             return Promise.reject('Unsupported action.');

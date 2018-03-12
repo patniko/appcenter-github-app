@@ -176,12 +176,26 @@ const startRepoBuild = function (repo_config, request_body, log) {
                         reject(error);
                     });
                 } else if (action === 'closed') {
-                    log(`PR closed, deleting build configuration for ${branch}.`);
-                    appCenterRequests.deletePrCheckConfiguration(branch, appcenter_token, owner_name, app_name)
-                        .then(() => resolve(`${branch} has been removed.`))
-                        .catch((error) => {
-                            reject(error);
-                        });
+                    log(`PR closed, stopping builds.`);
+                    appCenterRequests.getBuilds(branch, appcenter_token, owner_name, app_name).then((builds) => {
+                        builds = JSON.parse(builds);
+                        let build_id = -1;
+                        for (build of builds) {
+                            if (build.status == 'inProgress') {
+                                build_id = build.id;
+                                break;
+                            }
+                        }
+                        if (build_id >= 0) {
+                            return appCenterRequests.stopBuild(build_id,  appcenter_token, owner_name, app_name);                        
+                        } else {
+                            resolve();
+                        }
+                    }).then(() => {
+                        resolve(`Build has been stopped.`);
+                    }).catch((error) => {
+                        reject(error);
+                    });
                 } else {
                     log('Unsupported action detected.');
                     resolve(`${action} is an unsupported action. Ignored.`);
