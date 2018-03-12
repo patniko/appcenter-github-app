@@ -5,7 +5,7 @@ const appCenterRequests = require('../api/appcenter');
 const githubRequests = require('../api/github');
 const pem = fs.readFileSync(path.resolve(__dirname, '../appcenter.pem'));
 const jwt = require('jsonwebtoken');
-const pub = fs.readFileSync(path.resolve(__dirname, '../public.pem'));
+const pub = fs.readFileSync(path.resolve(__dirname, '../database-public.pem'));
 const github_app_id = process.env['GITHUB_APP_ID'];
 const app = githubRequests.createApp({
     id: github_app_id,

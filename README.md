@@ -21,9 +21,9 @@
 
 8. Provide a `GITHUB_APP_ID`, `GH_APP_CLIENT_ID` and `GH_APP_CLIENT_SECRET` in local settings as it is available now.
 
-9. Next, generate a public/private rsa keypair for encoding data stored in the database. This is done via `openssl genrsa -out private.pem` and `openssl rsa -in private.pem -pubout -out public.pem`. 
+9. Next, generate a public/private rsa keypair for encoding data stored in the database. This is done via `openssl genrsa -out database-private.pem` and `openssl rsa -in database-private.pem -pubout -out database-public.pem`. 
 
-10. Put a `public.pem` under `PrCheck` folder and `private.pem` under `PrCheckSetup` folder.
+10. Put a `database-public.pem` under `PrCheck` folder and `database-private.pem` under `PrCheckSetup` folder.
 
 12. Publish the changes to the Azure portal using `func azure functionapp publish AppCenterFunctions publish -i`.
 

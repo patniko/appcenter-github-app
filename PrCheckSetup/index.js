@@ -1,7 +1,7 @@
 const path = require('path');
 const fs = require('fs');
 const jwt = require('jsonwebtoken');
-const pem = fs.readFileSync(path.resolve(__dirname, './private.pem'));
+const pem = fs.readFileSync(path.resolve(__dirname, './database-private.pem'));
 const appCenterTokenForm = require('./actions/app-center-token-form');
 const identityRedirectScript = require('./actions/identity-redirect');
 const appInstallationsDao = require('./db/index').getAppInstallationsDao();
