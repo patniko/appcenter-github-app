@@ -7,13 +7,28 @@
  
 2. Create a database in Azure Portal and update `local.settings.json` with valid `DB_ID`, `DB_HOST` and `DB_AUTH_KEY` values.
 
-3. Run the Azure Function locally to verify releases are being processed correctly.
+3. Run the Azure Function locally to verify releases are being processed correctly. You can specify the names of the functions that need to be run, in `host.json` file.
 
 ```func host start –-debug vscode```
+
+`host.json`:
+```
+{
+    "functions": [ "PrCheck", "PrCheckSetup" ]
+}
+```
+   - If you want to debug the function locally, use `ngrok`. 
+   - Start the debugger, then execute `ngrok http 7071`. Copy the link from the console - you can now use it to construct webhook and setup urls.  
+   - To attach to the debugger, use `F5`.
 
 5. Link the project to your subscription before running by navigating to the Azure portal, creating a new Function called PrCheck underneath a subscription and running the command below to link the two.
 
 ```func azure functionapp fetch-app-settings AppCenterFunctions ```
+
+>Note: If you get the message `Can't find app with name "AppCenterFunctions" in current subscription`, simply do the following:
+- Run `func azure account list`
+- Find an id of the MS_INT subscription
+- Run `func azure account set <sub_id>`
 
 6. Create a GitHub app and configure webhook url to point to `PrCheck` function and Setup Url, authorization callback url to point to `PrCheckSetup` function. 
 
