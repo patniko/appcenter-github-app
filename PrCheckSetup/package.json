@@ -23,6 +23,7 @@
         "documentdb": "^1.14.2",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "jsonwebtoken": "^8.2.0"
+        "jsonwebtoken": "^8.2.0",
+        "@octokit/rest": "^14.0.9"
     }
 }

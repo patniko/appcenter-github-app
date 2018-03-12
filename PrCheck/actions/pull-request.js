@@ -158,7 +158,8 @@ const startRepoBuild = function (repo_config, request_body, log) {
                             app_name,
                             branch,
                             options.buildNumber,
-                            installation_id
+                            installation_id,
+                            app.status.PENDING
                         );
                     }).then(response => {
                         log(response);

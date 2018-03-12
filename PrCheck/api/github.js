@@ -3,6 +3,13 @@ const jwt = require('jsonwebtoken');
 
 module.exports = {
     createApp: function ({ id, cert, debug = false }) {
+
+        var status = {
+            PENDING: {state: "pending", description: "Running build in App Center..."},
+            SUCCEEDED: {state: "success", description: "App Center build successfully created."},
+            FAILED: {state: "failure", description: "Errors occurred during App Center build."}
+        };
+
         function asApp() {
             octokit.authenticate({ type: 'integration', token: generateJwt(id, cert) });
             // Return a promise to keep API consistent
@@ -30,12 +37,12 @@ module.exports = {
             });
         }
 
-        function reportGithubStatus(repo_name, sha, appcenter_owner, owner_type, app, branch, buildNumber, id) {
+        function reportGithubStatus(repo_name, sha, appcenter_owner, owner_type, app, branch, buildNumber, id, status) {
             return asInstallation(id).then(github => {
                 return github.repos.createStatus({ owner: repo_name.split('/')[0], repo: repo_name.split('/')[1], sha: sha,
-                    state: 'pending',
+                    state: status.state,
                     target_url: `https://appcenter.ms/${owner_type}/${appcenter_owner}/apps/${app}/build/branches/${branch}/builds/${buildNumber}`,
-                    description: 'Running build in App Center...',
+                    description: status.description,
                     context: `appcenter-ci/${app}`} );
             });
         }
@@ -52,6 +59,6 @@ module.exports = {
             return jwt.sign(payload, cert, { algorithm: 'RS256' });
         }
 
-        return { asApp, asInstallation, createToken, getConfig, reportGithubStatus };
+        return { asApp, asInstallation, createToken, getConfig, reportGithubStatus, status };
     }
 };
