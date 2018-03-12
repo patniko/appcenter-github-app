@@ -9,9 +9,10 @@
         "WEBSITE_CONTENTSHARE": "rerelasefunctionaee1",
         "WEBSITE_NODE_DEFAULT_VERSION": "6.5.0",
         "AzureWebJobsSecretStorageType": "disabled",
-        "APP_CENTER_TOKEN": "",
-        "GITHUB_TOKEN": "",
-        "GITHUB_APPID": 9631
+        "GITHUB_APP_ID": -1,
+        "DB_HOST": "",
+        "DB_AUTH_KEY": "",
+        "DB_ID": ""
     },
     "ConnectionStrings": {}
 }

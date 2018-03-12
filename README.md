@@ -5,23 +5,27 @@
  
 ```npm install -g azure-functions-core-tools@core ```
  
-2. Update _APP_CENTER_TOKEN_ in `local.settings.json` with a valid [App Center API token](https://appcenter.ms/settings/apitokens).
+2. Create a database in Azure Portal and update `local.settings.json` with valid `DB_ID`, `DB_HOST` and `DB_AUTH_KEY` values.
 
-3. Update _GITHUB_TOKEN_ in `local.settings.json` with a valid [Github token](https://github.com/settings/tokens).
-
-4. Update the `config.json` file.
-
-5. Run the Azure Function locally to verify releases are being processed correctly.
+3. Run the Azure Function locally to verify releases are being processed correctly.
 
 ```func host start –-debug vscode```
 
-6. Commit the changes to your fork.
+5. Link the project to your subscription before running by navigating to the Azure portal, creating a new Function called PrCheck underneath a subscription and running the command below to link the two.
 
-7. Link the project to your subscription before running by navigating to the Azure portal, creating a new Function called PrBuild underneath a subscription and running the command below to link the two.
+```func azure functionapp fetch-app-settings AppCenterFunctions ```
 
-```func azure functionapp fetch-app-settings AppCenterFunction ```
+6. Create a GitHub app and configure webhook url to point to `PrCheck` function and Setup Url, authorization callback url to point to `PrCheckSetup` function. 
 
-8. Configure a webhook under `https://github.com/<repo_owner>/<repo_name>/settings/hooks` with an url from the Azure portal. You can find it pressing `Get function url` button in the right corner at the top of the function code.
+7. When you create an app on GitHub, you will be prompted to generate a private key for it. Download it and put it under `PrCheck` folder named as `appcenter.pem`.
+
+8. Provide a `GITHUB_APP_ID`, `GH_APP_CLIENT_ID` and `GH_APP_CLIENT_SECRET` in local settings as it is available now.
+
+9. Next, generate a public/private rsa keypair for encoding data stored in the database. This is done via `openssl genrsa -out private.pem` and `openssl rsa -in private.pem -pubout -out public.pem`. 
+
+10. Put a `public.pem` under `PrCheck` folder and `private.pem` under `PrCheckSetup` folder.
+
+12. Publish the changes to the Azure portal using `func azure functionapp publish AppCenterFunctions publish -i`.
 
 # Contributing
 

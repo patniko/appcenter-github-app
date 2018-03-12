@@ -20,9 +20,9 @@
     },
     "homepage": "https://github.com/Microsoft/appcenter-azure-functions.git#readme",
     "dependencies": {
-        "@octokit/rest": "^14.0.9",
-        "jsonwebtoken": "^8.1.1",
+        "documentdb": "^1.14.2",
         "request": "^2.83.0",
-        "request-promise": "^4.2.2"
+        "request-promise": "^4.2.2",
+        "jsonwebtoken": "^8.2.0"
     }
 }
