@@ -5,9 +5,11 @@ module.exports = {
     createApp: function ({ id, cert, debug = false }) {
 
         var status = {
-            PENDING: {state: "pending", description: "Running build in App Center..."},
+            STARTED: {state: "pending", description: "Build started..."},
+            PENDING: {state: "pending", description: "Build in App Center is in progress..."},
             SUCCEEDED: {state: "success", description: "App Center build successfully created."},
-            FAILED: {state: "failure", description: "Errors occurred during App Center build."}
+            FAILED: {state: "failure", description: "Errors occurred during App Center build."},
+            FUNCTION_FAILED: {state: "failure", description: "Errors occurred during executing Azure function."}
         };
 
         function asApp() {
@@ -37,11 +39,11 @@ module.exports = {
             });
         }
 
-        function reportGithubStatus(repo_name, sha, appcenter_owner, owner_type, app, branch, buildNumber, id, status) {
+        function reportGithubStatus(repo_name, sha, appcenter_owner, owner_type, app, branch, buildNumber, id, status, target_url) {
             return asInstallation(id).then(github => {
                 return github.repos.createStatus({ owner: repo_name.split('/')[0], repo: repo_name.split('/')[1], sha: sha,
                     state: status.state,
-                    target_url: `https://appcenter.ms/${owner_type}/${appcenter_owner}/apps/${app}/build/branches/${branch}/builds/${buildNumber}`,
+                    target_url: target_url || `https://appcenter.ms/${owner_type}/${appcenter_owner}/apps/${app}/build/branches/${branch}/builds/${buildNumber}`,
                     description: status.description,
                     context: `appcenter-ci/${app}`} );
             });

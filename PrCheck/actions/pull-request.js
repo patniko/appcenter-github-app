@@ -114,6 +114,18 @@ const startRepoBuild = function (repo_config, request_body, log) {
                 };
                 if (action === 'opened' || action === 'synchronize') {
                     log(`PR #${pull_request} was ${action} on '${branch}' trying to merge into '${target_branch}'...`);
+                    app.reportGithubStatus(
+                        request_body.repository.full_name,
+                        sha,
+                        owner_name,
+                        "",
+                        app_name,
+                        branch,
+                        -1,
+                        installation_id,
+                        app.status.STARTED,
+                        "https://appcenter.ms"
+                    );
                     let new_branch_config = false;
                     appCenterRequests.getBuildConfiguration(branch, appcenter_token, owner_name, app_name).then((branch_config) => {
                         branch_config = JSON.parse(branch_config);
