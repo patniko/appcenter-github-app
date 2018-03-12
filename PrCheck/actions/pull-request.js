@@ -95,7 +95,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                     const env_variables_map =
                         [
                             ['PR_GITHUB_REPO', repo_path],
-                            ['PR_APPCENTER_APP', `${appcenter_owner_type}/${owner_name}/apps/${app_name}`],
+                            ['PR_APPCENTER_APP', `${appcenter_owner_type}/${owner_name}/${app_name}`],
                             ['PR_INSTALLATION_ID', installation_id]
                         ];
                     if (typeof (branch_config.environmentVariables) === 'undefined') {
