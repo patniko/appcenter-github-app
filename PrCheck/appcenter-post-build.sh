@@ -11,23 +11,23 @@ function parse_git_hash() {
 
 SHA=$(parse_git_hash)
 github_notify_build_state() {
-  STATE="\"success\""
-  DESCRIPTION="\"App Center build successfully created.\""
+  SUCCEEDED="true"
   if [ "$1" != true ]; then 
-    STATE="\"failure\""
-    DESCRIPTION="\"Errors occurred during App Center build.\""
+    SUCCEEDED="false"
   fi
   curl -H "Content-Type: application/json" \
-  -H "Authorization: token ${PR_GITHUB_TOKEN}" \
   -H "User-Agent: appcenter-ci" \
   -H "Content-Type: application/json" \
   --data "{
-          \"state\": ${STATE},
-          \"target_url\": \"https://appcenter.ms/${PR_APPCENTER_APP}/build/branches/${APPCENTER_BRANCH}/builds/${APPCENTER_BUILD_ID}\",
-          \"description\": ${DESCRIPTION},
-          \"context\": \"appcenter-ci/${PR_APPCENTER_APP#*/*/apps/}\"
+    \"sha\":\"${SHA}\",
+    \"buildId\":\"${APPCENTER_BUILD_ID}\",
+    \"branch\":\"${APPCENTER_BRANCH}\",
+    \"repo_path\":\"${PR_GITHUB_REPO}\",
+    \"installation_id\":\"${PR_INSTALLATION_ID}\",
+    \"succeeded\":\"${SUCCEEDED}\", 
+    \"appcenter_app\": \"${PR_APPCENTER_APP}\"
         }" \
-       https://api.github.com/repos/${PR_GITHUB_REPO}/statuses/${SHA}
+    https://appcenterfunctions.azurewebsites.net/api/PrCheckSetup
 }
 
 if [ "$AGENT_JOBSTATUS" != "Succeeded" ]; then

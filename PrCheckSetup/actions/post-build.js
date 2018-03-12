@@ -22,7 +22,7 @@ module.exports = function (sha, repo_path, installation_id, succeeded, branch, b
             branch,
             buildId * 1,
             installation_id * 1,
-            succeeded ? app.status.SUCCEEDED : app.status.FAILED
+            !!succeeded ? app.status.SUCCEEDED : app.status.FAILED
         );
     } catch (error) {
         Promise.reject(error);

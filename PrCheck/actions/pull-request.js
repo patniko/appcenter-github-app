@@ -91,12 +91,12 @@ const startRepoBuild = function (repo_config, request_body, log) {
                 }
                 const { branch_template, owner_name, app_name } = repo_config;
                 const repo_path = request_body.pull_request.head.repo.full_name;
-                const createEnvVariablesOn = function (branch_config, github_token) {
+                const createEnvVariablesOn = function (branch_config) {
                     const env_variables_map =
                         [
                             ['PR_GITHUB_REPO', repo_path],
                             ['PR_APPCENTER_APP', `${appcenter_owner_type}/${owner_name}/apps/${app_name}`],
-                            ['PR_GITHUB_TOKEN', github_token]
+                            ['PR_INSTALLATION_ID', installation_id]
                         ];
                     if (typeof (branch_config.environmentVariables) === 'undefined') {
                         branch_config.environmentVariables = [];
@@ -115,13 +115,9 @@ const startRepoBuild = function (repo_config, request_body, log) {
                 if (action === 'opened' || action === 'synchronize') {
                     log(`PR #${pull_request} was ${action} on '${branch}' trying to merge into '${target_branch}'...`);
                     let new_branch_config = false;
-                    let github_token;
-                    app.createToken(installation_id).then((created_github_token) => {
-                        github_token = created_github_token.data.token;
-                        return appCenterRequests.getBuildConfiguration(branch, appcenter_token, owner_name, app_name);
-                    }).then((branch_config) => {
+                    appCenterRequests.getBuildConfiguration(branch, appcenter_token, owner_name, app_name).then((branch_config) => {
                         branch_config = JSON.parse(branch_config);
-                        branch_config = createEnvVariablesOn(branch_config, github_token);
+                        branch_config = createEnvVariablesOn(branch_config);
                         appCenterRequests.createPrCheckConfiguration(branch_config, branch, appcenter_token, owner_name, app_name);
                         return branch_config;
                     }, (error) => {
@@ -130,7 +126,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                                 .then(created_branch_config => {
                                     created_branch_config = JSON.parse(created_branch_config);
                                     new_branch_config = true;
-                                    created_branch_config = createEnvVariablesOn(created_branch_config, github_token);
+                                    created_branch_config = createEnvVariablesOn(created_branch_config);
                                     return appCenterRequests.createPrCheckConfiguration(created_branch_config, branch, appcenter_token, owner_name, app_name);
                                 }, (error) => {
                                     if (error.statusCode === 404) {
