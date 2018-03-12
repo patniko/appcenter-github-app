@@ -1,5 +1,5 @@
-const client_id =  "Iv1.d9ce1c50b5dcf89c";
-const client_secret = "6dbf0f9ae6b3a8bdd587f247141106c2f4a9bf99";
+const client_id =  process.env['GH_APP_CLIENT_ID'];
+const client_secret = process.env['GH_APP_CLIENT_SECRET'];
 const request = require('request-promise');
 const octokit = require('@octokit/rest')();
 const jwt = require('jsonwebtoken');
@@ -68,11 +68,11 @@ module.exports = {
             });
         }
 
-        function reportGithubStatus(repo_name, sha, appcenter_owner, owner_type, app, branch, buildNumber, id, status) {
+        function reportGithubStatus(repo_name, sha, appcenter_owner, owner_type, app, branch, buildNumber, id, status, target_uri) {
             return asInstallation(id).then(github => {
                 return github.repos.createStatus({ owner: repo_name.split('/')[0], repo: repo_name.split('/')[1], sha: sha,
                     state: status.state,
-                    target_url: `https://appcenter.ms/${owner_type}/${appcenter_owner}/apps/${app}/build/branches/${branch}/builds/${buildNumber}`,
+                    target_url: target_uri || `https://appcenter.ms/${owner_type}/${appcenter_owner}/apps/${app}/build/branches/${branch}/builds/${buildNumber}`,
                     description: status.description,
                     context: `appcenter-ci/${app}`} );
             });
