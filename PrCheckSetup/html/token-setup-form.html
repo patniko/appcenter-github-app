@@ -100,9 +100,7 @@
             var token = document.getElementById('token').value;
             loader.textContent = "Please wait...";
             send(btoa(token), gh_token);
-        } else {
-            location.href = link;
-        }
+        } 
     }
 
     function send(token, gh_token) {
@@ -119,10 +117,13 @@
                 if (http.responseText.startsWith('installation')) {
                     installation = http.responseText.substr(13) || "";
                     link = "https://github.com/settings/installations/" + installation;
-                    comment.outerHTML = "<p id='comment'>Successfully stored the token. You may now <a href='" + link + "'>go back</a> to the installed app.</p>";
+                    comment.outerHTML = "<p id='comment'>Successfully stored the token. You now will be redirected to the installed app.</p>";
                     button_save.hidden = true;
                     appcenter_token.hidden = true;
                     sent = true;
+                    setTimeout(function() {
+                        location.href= link;
+                    }, 3000);
                 } else {
                     comment.textContent = http.responseText + " Try again.";
                 }

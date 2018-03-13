@@ -141,26 +141,24 @@ AppInstallationsDao.prototype = {
         );
     },
 
-    getAppCenterTokenFor: function (installationId, callback) {
+    getAppCenterTokenFor: function (installation_id) {
         var self = this;
-
-        var querySpec = {
-            query: 'SELECT r.app_center_token FROM root r WHERE r.installation_id=@id',
-            parameters: [{
-                name: '@id',
-                value: installationId
-            }]
-        };
-
-        self.client.queryDocuments(self.collection._self, querySpec).toArray(function (err, results) {
-            if (err) {
-                callback(err);
-
-            } else {
-                callback(null, results[0]);
-            }
+        return new Promise((resolve, reject) => {
+            var querySpec = {
+                query: 'SELECT r.app_center_token FROM root r WHERE r.installation_id=@id',
+                parameters: [{
+                    name: '@id',
+                    value: installation_id
+                }]
+            };
+            self.client.queryDocuments(self.collection._self, querySpec).toArray(function (err, results) {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(results[0]);
+                }
+            });
         });
-
-    }
+    },
     // TODO: remove Item
 };

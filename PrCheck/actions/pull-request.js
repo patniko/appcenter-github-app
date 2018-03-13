@@ -5,7 +5,7 @@ const appCenterRequests = require('../api/appcenter');
 const githubRequests = require('../api/github');
 const pem = fs.readFileSync(path.resolve(__dirname, '../appcenter.pem'));
 const jwt = require('jsonwebtoken');
-const pub = fs.readFileSync(path.resolve(__dirname, '../public.pem'));
+const pub = fs.readFileSync(path.resolve(__dirname, '../database-public.pem'));
 const github_app_id = process.env['GITHUB_APP_ID'];
 const app = githubRequests.createApp({
     id: github_app_id,
@@ -91,12 +91,12 @@ const startRepoBuild = function (repo_config, request_body, log) {
                 }
                 const { branch_template, owner_name, app_name } = repo_config;
                 const repo_path = request_body.pull_request.head.repo.full_name;
-                const createEnvVariablesOn = function (branch_config, github_token) {
+                const createEnvVariablesOn = function (branch_config) {
                     const env_variables_map =
                         [
                             ['PR_GITHUB_REPO', repo_path],
-                            ['PR_APPCENTER_APP', `${appcenter_owner_type}/${owner_name}/apps/${app_name}`],
-                            ['PR_GITHUB_TOKEN', github_token]
+                            ['PR_APPCENTER_APP', `${appcenter_owner_type}/${owner_name}/${app_name}`],
+                            ['PR_INSTALLATION_ID', installation_id]
                         ];
                     if (typeof (branch_config.environmentVariables) === 'undefined') {
                         branch_config.environmentVariables = [];
@@ -114,14 +114,22 @@ const startRepoBuild = function (repo_config, request_body, log) {
                 };
                 if (action === 'opened' || action === 'synchronize') {
                     log(`PR #${pull_request} was ${action} on '${branch}' trying to merge into '${target_branch}'...`);
+                    app.reportGithubStatus(
+                        request_body.repository.full_name,
+                        sha,
+                        owner_name,
+                        "",
+                        app_name,
+                        branch,
+                        -1,
+                        installation_id,
+                        app.status.STARTED,
+                        "https://appcenter.ms"
+                    );
                     let new_branch_config = false;
-                    let github_token;
-                    app.createToken(installation_id).then((created_github_token) => {
-                        github_token = created_github_token.data.token;
-                        return appCenterRequests.getBuildConfiguration(branch, appcenter_token, owner_name, app_name);
-                    }).then((branch_config) => {
+                    appCenterRequests.getBuildConfiguration(branch, appcenter_token, owner_name, app_name).then((branch_config) => {
                         branch_config = JSON.parse(branch_config);
-                        branch_config = createEnvVariablesOn(branch_config, github_token);
+                        branch_config = createEnvVariablesOn(branch_config);
                         appCenterRequests.createPrCheckConfiguration(branch_config, branch, appcenter_token, owner_name, app_name);
                         return branch_config;
                     }, (error) => {
@@ -130,7 +138,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                                 .then(created_branch_config => {
                                     created_branch_config = JSON.parse(created_branch_config);
                                     new_branch_config = true;
-                                    created_branch_config = createEnvVariablesOn(created_branch_config, github_token);
+                                    created_branch_config = createEnvVariablesOn(created_branch_config);
                                     return appCenterRequests.createPrCheckConfiguration(created_branch_config, branch, appcenter_token, owner_name, app_name);
                                 }, (error) => {
                                     if (error.statusCode === 404) {
@@ -158,7 +166,8 @@ const startRepoBuild = function (repo_config, request_body, log) {
                             app_name,
                             branch,
                             options.buildNumber,
-                            installation_id
+                            installation_id,
+                            app.status.PENDING
                         );
                     }).then(response => {
                         log(response);
@@ -167,12 +176,26 @@ const startRepoBuild = function (repo_config, request_body, log) {
                         reject(error);
                     });
                 } else if (action === 'closed') {
-                    log(`PR closed, deleting build configuration for ${branch}.`);
-                    appCenterRequests.deletePrCheckConfiguration(branch, appcenter_token, owner_name, app_name)
-                        .then(() => resolve(`${branch} has been removed.`))
-                        .catch((error) => {
-                            reject(error);
-                        });
+                    log(`PR closed, stopping builds.`);
+                    appCenterRequests.getBuilds(branch, appcenter_token, owner_name, app_name).then((builds) => {
+                        builds = JSON.parse(builds);
+                        let build_id = -1;
+                        for (build of builds) {
+                            if (build.status == 'inProgress') {
+                                build_id = build.id;
+                                break;
+                            }
+                        }
+                        if (build_id >= 0) {
+                            return appCenterRequests.stopBuild(build_id,  appcenter_token, owner_name, app_name);                        
+                        } else {
+                            resolve();
+                        }
+                    }).then(() => {
+                        resolve(`Build has been stopped.`);
+                    }).catch((error) => {
+                        reject(error);
+                    });
                 } else {
                     log('Unsupported action detected.');
                     resolve(`${action} is an unsupported action. Ignored.`);
