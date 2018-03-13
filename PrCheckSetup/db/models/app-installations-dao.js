@@ -1,4 +1,5 @@
 const docdbUtils = require('./doc-db-utils');
+const trigger = require('../triggers/installation-id-trigger');
 
 function AppInstallationsDao(documentDBClient, databaseId, collectionId) {
     this.client = documentDBClient;
@@ -23,24 +24,11 @@ AppInstallationsDao.prototype = {
                 docdbUtils.getOrCreateCollection(self.client, self.database._self, self.collectionId, function (err, coll) {
                     if (err) {
                         callback(err);
-
                     } else {
                         self.collection = coll;
+                        self.client.createTrigger(self.collection._self, trigger.uniqueConstraintTrigger(), {}, () => {});
                     }
                 });
-            }
-        });
-    },
-
-    find: function (querySpec, callback) {
-        var self = this;
-
-        self.client.queryDocuments(self.collection._self, querySpec).toArray(function (err, results) {
-            if (err) {
-                callback(err);
-
-            } else {
-                callback(null, results);
             }
         });
     },
@@ -49,10 +37,14 @@ AppInstallationsDao.prototype = {
         return new Promise((resolve, reject) => {
             var self = this;
             item.date = Date.now();
-            self.client.createDocument(self.collection._self, item, function (err, doc) {
+            var options = { preTriggerInclude: "installationIdTrigger" };
+            self.client.createDocument(self.collection._self, item, options, function (err, doc) {
                 if (err) {
-                    reject(err);
-
+                    if (err.substatus == 409) {
+                        reject("There is already a document in a database with such an installation id. You may now leave this page.");
+                    } else {
+                        reject(err);
+                    }
                 } else {
                     resolve(doc);
                 }
@@ -60,29 +52,10 @@ AppInstallationsDao.prototype = {
         });
     },
 
-    updateToken: function (itemId, token, callback) {
+    getId: function (installationId) {
         var self = this;
 
-        self.getItem(itemId, function (err, doc) {
-            if (err) {
-                callback(err);
-            } else {
-                doc.app_center_token = token;
-                self.client.replaceDocument(doc._self, doc, function (err, replaced) {
-                    if (err) {
-                        callback(err);
-
-                    } else {
-                        callback(null, replaced);
-                    }
-                });
-            }
-        });
-    },
-
-    getId: function (installationId, callback) {
-        var self = this;
-
+        return new Promise((resolve, reject) => {
         var querySpec = {
             query: 'SELECT r.id FROM root r WHERE r.installation_id=@id',
             parameters: [{
@@ -93,16 +66,17 @@ AppInstallationsDao.prototype = {
 
         self.client.queryDocuments(self.collection._self, querySpec).toArray(function (err, results) {
             if (err) {
-                callback(err);
+                reject(err);
             } else {
-                callback(null, results[0]);
+                resolve(results[0]);
             }
         });
+    });
     },
 
-    getItem: function (itemId, callback) {
+    getItem: function (itemId) {
         var self = this;
-
+        return new Promise((resolve, reject) => {
         var querySpec = {
             query: 'SELECT * FROM root r WHERE r.id = @id',
             parameters: [{
@@ -110,35 +84,14 @@ AppInstallationsDao.prototype = {
                 value: itemId
             }]
         };
-
         self.client.queryDocuments(self.collection._self, querySpec).toArray(function (err, results) {
             if (err) {
-                callback(err);
-
+                reject(err);
             } else {
-                callback(null, results[0]);
+                resolve(results[0]);
             }
         });
-    },
-
-    setAppCenterTokenFor: function (installationId, token, callback) {
-        var self = this;
-        self.getId(installationId, function (err, result) {
-            if (!err) {
-                if (!result) {
-                    callback("No record in the database with such an installation id.");
-                } else {
-                    self.updateToken(result.id, token, function (err, result) {
-                        if (err) { callback(err); } else {
-                            callback(null, result);
-                        }
-                    });
-                }
-            } else {
-                callback(err);
-            }
-        }
-        );
+    });
     },
 
     getAppCenterTokenFor: function (installation_id) {

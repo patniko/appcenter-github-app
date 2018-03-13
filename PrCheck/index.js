@@ -2,9 +2,9 @@ const appDelete = require('./actions/app-delete');
 const pullRequest = require('./actions/pull-request');
 
 const processWebhookRequest = function (request) {
-    if (request.body && (request.body.action || request.body.ref)) {  
+    if (request.body && (request.body.action || request.body.ref)) {
         if (request.body.installation && (request.body.action == 'created' || request.body.action == 'deleted')) {
-            switch (request.body.action) { 
+            switch (request.body.action) {
                 case 'created': return Promise.resolve('Installing App Center GitHub app...');
                 case 'deleted': return appDelete(request.body.installation.id);
             }
@@ -13,14 +13,14 @@ const processWebhookRequest = function (request) {
         } else {
             return Promise.reject('Unsupported action.');
         }
-    } 
+    }
     return Promise.reject('Please post a valid webhook payload.');
 };
 
 let log = function () { };
 
 const resolveContext = function (body, status) {
-    this.res = { body: body, status: status }; 
+    this.res = { body: body, status: status };
     this.done();
 };
 

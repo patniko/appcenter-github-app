@@ -59,7 +59,7 @@ const processWebhookRequest = function (context, request) {
                     appInstallationsDao.addItem(item).then(() => {
                         resolve('installation=' + github_app_installation.id);
                     }).catch((err) => {
-                        reject('Could not manage to store the token. ' + err || err.message);
+                        reject('Could not manage to store the token. ' + err || err.message || err.body);
                     });
                 }, (error) => {
                     reject('Could not manage to store the token. Not valid github token sent.' + error || error.message);
@@ -88,6 +88,6 @@ module.exports = function (context, request) {
     processWebhookRequest(context, request)
         .then(successMessage => context.resolve(successMessage))
         .catch((errorMessage) => {
-            context.resolve(errorMessage, 400);
+            context.resolve(errorMessage);
         });
 };

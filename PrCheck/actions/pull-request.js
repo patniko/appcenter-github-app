@@ -73,10 +73,10 @@ const startRepoBuild = function (repo_config, request_body, log) {
                             } else {
                                 appcenter_token = decoded.token;
                                 appCenterRequests.getApp(decoded.token, repo_config.owner_name, repo_config.app_name).then(
-                                    (appcenter_app) => { 
-                                        resolve(appcenter_app); 
-                                    }, (error) => { 
-                                        reject(error); 
+                                    (appcenter_app) => {
+                                        resolve(appcenter_app);
+                                    }, (error) => {
+                                        reject(error);
                                     });
                             }
                         }
@@ -90,7 +90,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                     case 'user': appcenter_owner_type = 'users'; break;
                 }
                 const { branch_template, owner_name, app_name } = repo_config;
-                const repo_path = request_body.ref? "" : request_body.pull_request.head.repo.full_name;
+                const repo_path = request_body.ref ? "" : request_body.pull_request.head.repo.full_name;
                 const createEnvVariablesOn = function (branch_config) {
                     const env_variables_map =
                         [
@@ -112,7 +112,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                     }
                     return branch_config;
                 };
-                if (action === 'opened' || action === 'synchronize') {
+                if (action === 'opened' || action === 'reopened' || action === 'synchronize') {
                     log(`PR #${pull_request} was ${action} on '${branch}' trying to merge into '${target_branch}'...`);
                     app.reportGithubStatus(
                         request_body.repository.full_name,
@@ -176,7 +176,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                         reject(error);
                     });
                 } else if (action === 'closed' || (request_body.ref && request_body.ref_type === 'branch')) {
-                    log(action === 'closed' ? `PR closed, stopping builds.`:`Branch deleted, stopping builds.`);
+                    log(action === 'closed' ? `PR closed, stopping builds.` : `Branch deleted, stopping builds.`);
                     appCenterRequests.getBuilds(branch, appcenter_token, owner_name, app_name).then((builds) => {
                         builds = JSON.parse(builds);
                         let build_id = -1;
@@ -187,7 +187,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                             }
                         }
                         if (build_id >= 0) {
-                            return appCenterRequests.stopBuild(build_id,  appcenter_token, owner_name, app_name);                        
+                            return appCenterRequests.stopBuild(build_id, appcenter_token, owner_name, app_name);
                         } else {
                             resolve();
                         }
@@ -200,6 +200,8 @@ const startRepoBuild = function (repo_config, request_body, log) {
                     log('Unsupported action detected.');
                     resolve(`${action} is an unsupported action. Ignored.`);
                 }
+            }).catch((err) => {
+                reject(err);
             });
     });
 };
