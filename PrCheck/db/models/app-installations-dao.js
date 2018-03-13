@@ -30,6 +30,26 @@ AppInstallationsDao.prototype = {
         });
     },
 
+    getId: function (installationId, callback) {
+        var self = this;
+
+        var querySpec = {
+            query: 'SELECT r.id FROM root r WHERE r.installation_id=@id',
+            parameters: [{
+                name: '@id',
+                value: installationId - 0
+            }]
+        };
+
+        self.client.queryDocuments(self.collection._self, querySpec).toArray(function (err, results) {
+            if (err) {
+                callback(err);
+            } else {
+                callback(null, results[0]);
+            }
+        });
+    },
+
     find: function (querySpec, callback) {
         var self = this;
         self.client.queryDocuments(self.collection._self, querySpec).toArray(function (err, results) {
@@ -72,6 +92,32 @@ AppInstallationsDao.prototype = {
         });
     },
 
+    removeInstallation: function (installationId, callback) {
+        var self = this;
+        self.getId(installationId, function(err, itemId) {
+            if (!err) {
+                if (itemId) {
+                    self.getItem(itemId.id, function (err, doc) {
+                        if (err) {
+                            callback(err);
+                        } else if (doc) {
+                            doc.completed = true;
+                            self.client.deleteDocument(doc._self, function (err, replaced) {
+                                if (err) {
+                                    callback(err);
+                                } else {
+                                    callback(null, replaced);
+                                }
+                            });
+                        }
+                    });
+                }
+            } else {
+                callback(err);
+            }
+        });        
+    },
+
     getItem: function (itemId, callback) {
         var self = this;
         var querySpec = {
@@ -95,26 +141,6 @@ AppInstallationsDao.prototype = {
         return new Promise((resolve, reject) => {
             var querySpec = {
                 query: 'SELECT r.app_center_token FROM root r WHERE r.installation_id=@id',
-                parameters: [{
-                    name: '@id',
-                    value: installation_id
-                }]
-            };
-            self.client.queryDocuments(self.collection._self, querySpec).toArray(function (err, results) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve(results[0]);
-                }
-            });
-        });
-    },
-
-    removeInstallation: function (installation_id) {
-        var self = this;
-        return new Promise((resolve, reject) => {
-            var querySpec = {
-                query: 'DELETE FROM root r WHERE r.installation_id=@id',
                 parameters: [{
                     name: '@id',
                     value: installation_id

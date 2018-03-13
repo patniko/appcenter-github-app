@@ -49,10 +49,10 @@ module.exports = function (request, log) {
 
 const startRepoBuild = function (repo_config, request_body, log) {
     const action = request_body.action;
-    const branch = request_body.pull_request.head.ref;
-    const sha = request_body.pull_request.head.sha;
-    const target_branch = request_body.pull_request.base.ref;
-    const pull_request = request_body.pull_request.id;
+    const branch = request_body.ref || request_body.pull_request.head.ref;
+    const sha = request_body.ref ? "" : request_body.pull_request.head.sha;
+    const target_branch = request_body.ref || request_body.pull_request.base.ref;
+    const pull_request = request_body.ref ? 0 : request_body.pull_request.id;
     const installation_id = request_body.installation.id;
 
     return new Promise((resolve, reject) => {
@@ -90,7 +90,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                     case 'user': appcenter_owner_type = 'users'; break;
                 }
                 const { branch_template, owner_name, app_name } = repo_config;
-                const repo_path = request_body.pull_request.head.repo.full_name;
+                const repo_path = request_body.ref? "" : request_body.pull_request.head.repo.full_name;
                 const createEnvVariablesOn = function (branch_config) {
                     const env_variables_map =
                         [
@@ -175,8 +175,8 @@ const startRepoBuild = function (repo_config, request_body, log) {
                     }).catch((error) => {
                         reject(error);
                     });
-                } else if (action === 'closed') {
-                    log(`PR closed, stopping builds.`);
+                } else if (action === 'closed' || (request_body.ref && request_body.ref_type === 'branch')) {
+                    log(action === 'closed' ? `PR closed, stopping builds.`:`Branch deleted, stopping builds.`);
                     appCenterRequests.getBuilds(branch, appcenter_token, owner_name, app_name).then((builds) => {
                         builds = JSON.parse(builds);
                         let build_id = -1;

@@ -2,13 +2,13 @@ const appDelete = require('./actions/app-delete');
 const pullRequest = require('./actions/pull-request');
 
 const processWebhookRequest = function (request) {
-    if (request.body && request.body.action) {  
+    if (request.body && (request.body.action || request.body.ref)) {  
         if (request.body.installation && (request.body.action == 'created' || request.body.action == 'deleted')) {
             switch (request.body.action) { 
                 case 'created': return Promise.resolve('Installing App Center GitHub app...');
                 case 'deleted': return appDelete(request.body.installation.id);
             }
-        } else if (request.body.pull_request && (request.body.action === 'opened' || request.body.action === 'reopened' || request.body.action === 'synchronize' || request.body.action === 'closed')) {
+        } else if ((request.body.ref && request.body.ref_type === 'branch') || (request.body.pull_request && (request.body.action === 'opened' || request.body.action === 'reopened' || request.body.action === 'synchronize' || request.body.action === 'closed'))) {
             return pullRequest(request, log);
         } else {
             return Promise.reject('Unsupported action.');
