@@ -5,11 +5,14 @@ const octokit = require('@octokit/rest')();
 const jwt = require('jsonwebtoken');
 
 module.exports = {
+    //Gets the url for starting Oauth2 flow.
     getIdentityRequestUrl: function(state, redirect_url) {
         return 'https://github.com/login/oauth/authorize' + 
             `?client_id=${client_id}&redirect_url=${redirect_url}` + 
             `&scope=user&state=${state}&allow_signup=false`;
     },
+    
+    //Retrieves access token by auth code (2nd stage of Oauth2).
     getAccessToken: function(state, code, redirect_url) {
         const location = 'https://github.com/login/oauth/access_token' +
             `?client_id=${client_id}&client_secret=${client_secret}` +
@@ -20,6 +23,8 @@ module.exports = {
         };
         return request(options);
     },
+    
+    //Gets all the GitHub apps installed for the specified user (by his token).
     getUserApps: function(token) {
         const options = {
             url: `https://api.github.com/user/installations?access_token=${token}`,
@@ -32,6 +37,8 @@ module.exports = {
         };
         return request(options);
     },
+    
+    //Encapsulates GitHub logic accessed via GitHub app.
     createApp: function ({ id, cert}) {
 
         const status = {
@@ -42,13 +49,13 @@ module.exports = {
             FUNCTION_FAILED: {state: 'failure', description: 'Please configure your branch for build first.'}
         };
 
+        //Authenticates as the GitHub app by private key.
         function asApp() {
             octokit.authenticate({ type: 'integration', token: generateJwt(id, cert) });
-            // Return a promise to keep API consistent
             return Promise.resolve(octokit);
         }
 
-        // Authenticate as the given installation
+        // Authenticates as the given installation of the GitHub app, which gives us access to actions in user repo.
         function asInstallation(installationId) {
             return createToken(installationId).then(res => {
                 octokit.authenticate({ type: 'token', token: res.data.token });
@@ -63,12 +70,16 @@ module.exports = {
             });
         }
 
+        //Gets json config file from teh root of the user repository.
         function getConfig(username, repo, id) {
             return asInstallation(id).then(github => {
                 return github.repos.getContent({ owner: username, repo: repo, path: 'appcenter-pr.json' });
             });
         }
 
+        //Reports a status for the specified commit in repository. 
+        //Include target_url if you want to override url in Details section of the status, otherwise leave it undefined.
+        //If you specify the target_url, you can leave appcenter_owner, owner_type and branch blank or undefined.
         function reportGithubStatus(repo_name, sha, appcenter_owner, owner_type, app, branch, buildNumber, id, status, target_url) {
             return asInstallation(id).then(github => {
                 return github.repos.createStatus({ owner: repo_name.split('/')[0], repo: repo_name.split('/')[1], sha: sha,
@@ -79,7 +90,7 @@ module.exports = {
             });
         }
 
-        // Internal - no need to exose this right now
+        //Generates jwt signature for from the private key and GitHub app id.
         function generateJwt(id, cert) {
             const payload = {
                 iat: Math.floor(new Date() / 1000),       // Issued at time
