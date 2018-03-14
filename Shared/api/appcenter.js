@@ -6,6 +6,19 @@ module.exports = {
         Object.assign(options, { method: 'GET' });
         return request(options);
     },
+    getConfig: function(token, owner, app) {
+        const options = BuildUrl('/repo_config', token, owner, app);
+        Object.assign(options, { method: 'GET' });
+        return request(options);
+    },
+    getAllApps: function(token) {
+        const options = {
+            headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', 'X-API-Token': token },
+            url: 'https://api.appcenter.ms/v0.1/apps/'
+        };
+        Object.assign(options, { method: 'GET' });
+        return request(options);
+    },
     getBuildConfiguration: function(branch, token, owner, app) {
         const endpoint = `/branches/${branch}/config`;
         const options = BuildUrl(endpoint, token, owner, app);

@@ -40,6 +40,47 @@ module.exports = function (request, log) {
                 const head_repo = request.body.pull_request.head.repo.full_name;
                 return Promise.resolve(`Webhook was triggered by ${head_repo}, but there is no such kind configuration for this repo. Ignored.`);
             }
+        }, () => {
+            const test = function (url, gh_repo_owner, gh_repo_name) {
+                const regexp = new RegExp('.*github.*' + gh_repo_owner + '.*' + gh_repo_name + '.*');
+                return regexp.test(url);
+            };
+            installationDao.getAppCenterTokenFor(request.body.installation.id)
+                .then((decoded_token) => {
+                    appCenterRequests.getAllApps(decoded_token).then((apps) => {
+                        apps = JSON.parse(apps);
+                        const build_promises = [];
+                        for (let app of apps) {
+                            appCenterRequests.getConfig(decoded_token, app.owner.name, app.name).then((config) => {
+                                config = JSON.parse(config);
+                                if (config && config.length > 0) {
+                                    if (test(config[0].repo_url, request.body.repository.owner.login, request.body.repository.name)) {
+                                        let repo_config = {
+                                            branch_template: 'master',
+                                            owner_name: app.owner.name,
+                                            app_name: app.name
+                                        };
+                                        build_promises.push(startRepoBuild(repo_config, request.body, log).catch((error) => {
+                                            log(error);
+                                        }));
+                                    }
+                                }
+                            });
+                        }
+                        return new Promise((resolve, reject) => {
+                            Promise.all(build_promises)
+                                .then((...args) => {
+                                    if (args.length) {
+                                        resolve(args.join('; '));
+                                    }
+                                }).catch((error) => {
+                                    reject(error);
+                                });
+                        });
+                    }, (error) => {
+                        Promise.reject(error);
+                    });
+                });
         });
     } catch (error) {
         Promise.reject(error);
