@@ -28,6 +28,8 @@ Under "Permissions and Webhooks" section, give access to "Repository metadata" a
 
 1. Put a `database-public.pem` and `database-private.pem` under `Shared` folder.
 
+1. Run `npm i` from `Shared` folder.
+
 1. Now run the Azure Function locally to verify releases are being processed correctly. You can specify the names of the functions that need to be run in `host.json` file.
     ```func host start –-debug vscode```
 
