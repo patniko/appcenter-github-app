@@ -42,7 +42,7 @@ module.exports = function (request, log) {
             }
         }, () => {
             const test = function (url, gh_repo_owner, gh_repo_name) {
-                const regexp = new RegExp('.*github.*' + gh_repo_owner + '.*' + gh_repo_name + '.*');
+                const regexp = new RegExp('.*' + gh_repo_owner + '.*' + gh_repo_name + '.*');
                 return regexp.test(url);
             };
             installationDao.getAppCenterTokenFor(request.body.installation.id)
@@ -54,7 +54,7 @@ module.exports = function (request, log) {
                             appCenterRequests.getConfig(decoded_token, app.owner.name, app.name).then((config) => {
                                 config = JSON.parse(config);
                                 if (config && config.length > 0) {
-                                    if (test(config[0].repo_url, request.body.repository.owner.login, request.body.repository.name)) {
+                                    if (config[0].type === 'github' && test(config[0].repo_url, request.body.repository.owner.login, request.body.repository.name)) {
                                         let repo_config = {
                                             branch_template: 'master',
                                             owner_name: app.owner.name,
@@ -100,7 +100,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
         installationDao.getAppCenterTokenFor(installation_id)
             .then((decoded_token) => {
                 appcenter_token = decoded_token;
-                return appCenterRequests.getApp(decoded_token, repo_config.owner_name, repo_config.app_name)
+                return appCenterRequests.getApp(decoded_token, repo_config.owner_name, repo_config.app_name);
             }).then((appcenter_app) => {
                 appcenter_app = JSON.parse(appcenter_app);
                 let appcenter_owner_type;
