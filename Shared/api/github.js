@@ -39,7 +39,7 @@ module.exports = {
             PENDING: {state: 'pending', description: 'Build in App Center is in progress...'},
             SUCCEEDED: {state: 'success', description: 'App Center build successfully created.'},
             FAILED: {state: 'failure', description: 'Errors occurred during App Center build.'},
-            FUNCTION_FAILED: {state: 'failure', description: 'Errors occurred during executing Azure function.'}
+            FUNCTION_FAILED: {state: 'failure', description: 'Please configure your branch for build first.'}
         };
 
         function asApp() {

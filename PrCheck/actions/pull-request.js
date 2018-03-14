@@ -161,6 +161,18 @@ const startRepoBuild = function (repo_config, request_body, log) {
                                     return appCenterRequests.createPrCheckConfiguration(created_branch_config, branch, appcenter_token, owner_name, app_name);
                                 }, (error) => {
                                     if (error.statusCode === 404) {
+                                        app.reportGithubStatus(
+                                            request_body.repository.full_name,
+                                            sha,
+                                            owner_name,
+                                            '',
+                                            app_name,
+                                            branch,
+                                            -1,
+                                            installation_id,
+                                            app.status.FUNCTION_FAILED,
+                                            `https://appcenter.ms/${appcenter_owner_type}/${owner_name}/apps/${app_name}/build/branches/${branch}/configure`
+                                        );
                                         return Promise.reject('Error: 404 Not Found. Please check you have pasted valid appcenter owner, owner type and app name in config.json.');
                                     } else if (error.statusCode == 401) {
                                         return Promise.reject('Error: 401 Unauthorized. Could not login to App Center. Please check you have pasted valid appcenter token in local.settings.json.');
