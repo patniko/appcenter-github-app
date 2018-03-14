@@ -7,7 +7,7 @@
 
 1. Create a CosmosDB database in Azure Portal and update `local.settings.json` with valid `DB_ID`, `DB_HOST` and `DB_AUTH_KEY` values.
 
-1. Link the project to your subscription before running by navigating to the Azure portal, creating a new Function called PrCheck underneath a subscription and running the command below to link the two.
+1. Link the project to your subscription before running by navigating to the Azure portal, creating three functions called PrCheck, PrCheckSetup and PrCheckStatus underneath a subscription and running the command below to link the two. Note that the PrCheck function should be *private*.
 
     ```func azure functionapp fetch-app-settings AppCenterFunctions```
 
