@@ -34,7 +34,7 @@ module.exports = {
     },
     createApp: function ({ id, cert}) {
 
-        var status = {
+        const status = {
             STARTED: {state: 'pending', description: 'Build started...'},
             PENDING: {state: 'pending', description: 'Build in App Center is in progress...'},
             SUCCEEDED: {state: 'success', description: 'App Center build successfully created.'},

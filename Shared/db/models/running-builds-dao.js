@@ -13,7 +13,7 @@ module.exports = RunningBuildsDao;
 
 RunningBuildsDao.prototype = {
     init: function (callback) {
-        var self = this;
+        const self = this;
         docdbUtils.getOrCreateDatabase(self.client, self.databaseId, function (err, db) {
             if (err) {
                 callback(err);
@@ -31,9 +31,9 @@ RunningBuildsDao.prototype = {
     },
 
     getId: function (owner_name, app_name, build_id) {
-        var self = this;
+        const self = this;
         return new Promise((resolve, reject) => {
-            var querySpec = {
+            const querySpec = {
                 query: 'SELECT r.id FROM root r WHERE r.appcenter_owner_name=@owner_name AND r.appcenter_app_name=@app_name and r.build_id=@build_id',
                 parameters: [
                     {
@@ -61,7 +61,7 @@ RunningBuildsDao.prototype = {
     },
 
     removeRunningBuild: function (owner_name, app_name, build_id) {
-        var self = this;
+        const self = this;
         return new Promise((resolve, reject) => {
             self.getId(owner_name, app_name, build_id).then((itemId) => {
                 if (itemId) {
@@ -89,9 +89,9 @@ RunningBuildsDao.prototype = {
     },
 
     getItem: function (itemId) {
-        var self = this;
+        const self = this;
         return new Promise((resolve, reject) => {
-            var querySpec = {
+            const querySpec = {
                 query: 'SELECT * FROM root r WHERE r.id = @id',
                 parameters: [{
                     name: '@id',
@@ -109,9 +109,9 @@ RunningBuildsDao.prototype = {
     },
 
     getAllBuilds: function () {
-        var self = this;
+        const self = this;
         return new Promise((resolve, reject) => {
-            var querySpec = {
+            const querySpec = {
                 query: 'SELECT * FROM root'
             };
             self.client.queryDocuments(self.collection._self, querySpec).toArray(function (err, results) {
@@ -126,7 +126,7 @@ RunningBuildsDao.prototype = {
 
     addItem: function (item) {
         return new Promise((resolve, reject) => {
-            var self = this;
+            const self = this;
             item.date = Date.now();
             self.client.createDocument(self.collection._self, item, {}, function (err, doc) {
                 if (err) {

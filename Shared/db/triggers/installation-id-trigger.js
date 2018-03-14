@@ -87,7 +87,7 @@ module.exports = {
                         if (err) {
                             if (err.number == ERROR_CODE.CONFLICT) throw new Error(err.number, 'Unique constraint for property ' + UNIQUE_PROPERTY_NAME + ' failed: (' + err.number + '): ' + err.message);
                             else throw err;
-                        };
+                        }
                     });
                     checkAccepted(isAccepted);
                 }
@@ -119,6 +119,6 @@ module.exports = {
             },
             triggerType: 'Pre',
             triggerOperation: 'Create'
-        }
+        };
     }
-}
+};

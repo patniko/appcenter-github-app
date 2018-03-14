@@ -14,7 +14,7 @@ module.exports = AppInstallationsDao;
 
 AppInstallationsDao.prototype = {
     init: function (callback) {
-        var self = this;
+        const self = this;
         docdbUtils.getOrCreateDatabase(self.client, self.databaseId, function (err, db) {
             if (err) {
                 callback(err);
@@ -33,10 +33,10 @@ AppInstallationsDao.prototype = {
     },
 
     getId: function (installationId) {
-        var self = this;
+        const self = this;
 
         return new Promise((resolve, reject) => {
-            var querySpec = {
+            const querySpec = {
                 query: 'SELECT r.id FROM root r WHERE r.installation_id=@id',
                 parameters: [{
                     name: '@id',
@@ -56,9 +56,9 @@ AppInstallationsDao.prototype = {
 
     addItem: function (item) {
         return new Promise((resolve, reject) => {
-            var self = this;
+            const self = this;
             item.date = Date.now();
-            var options = { preTriggerInclude: 'installationIdTrigger' };
+            const options = { preTriggerInclude: 'installationIdTrigger' };
             self.client.createDocument(self.collection._self, item, options, function (err, doc) {
                 if (err) {
                     if (err.substatus == 409) {
@@ -74,7 +74,7 @@ AppInstallationsDao.prototype = {
     },
 
     removeInstallation: function (installationId) {
-        var self = this;
+        const self = this;
         return new Promise((resolve, reject) => {
             self.getId(installationId).then((itemId) => {
                 if (itemId) {
@@ -102,9 +102,9 @@ AppInstallationsDao.prototype = {
     },
 
     getItem: function (itemId) {
-        var self = this;
+        const self = this;
         return new Promise((resolve, reject) => {
-            var querySpec = {
+            const querySpec = {
                 query: 'SELECT * FROM root r WHERE r.id = @id',
                 parameters: [{
                     name: '@id',
@@ -122,9 +122,9 @@ AppInstallationsDao.prototype = {
     },
 
     getAppCenterTokenFor: function (installation_id) {
-        var self = this;
+        const self = this;
         return new Promise((resolve, reject) => {
-            var querySpec = {
+            const querySpec = {
                 query: 'SELECT r.app_center_token FROM root r WHERE r.installation_id=@id',
                 parameters: [{
                     name: '@id',

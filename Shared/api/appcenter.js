@@ -2,13 +2,13 @@ const request = require('request-promise');
 
 module.exports = {
     getApp: function(token, owner, app) {
-        var options = BuildUrl('', token, owner, app);
+        const options = BuildUrl('', token, owner, app);
         Object.assign(options, { method: 'GET' });
         return request(options);
     },
     getBuildConfiguration: function(branch, token, owner, app) {
         const endpoint = `/branches/${branch}/config`;
-        var options = BuildUrl(endpoint, token, owner, app);
+        const options = BuildUrl(endpoint, token, owner, app);
         return request(options);
     },
     createPrCheckConfiguration: function(config, branch, token, owner, app) {
