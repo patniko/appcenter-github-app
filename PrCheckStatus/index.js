@@ -1,20 +1,20 @@
-const appInstallationsDao = require('./db/index').getAppInstallationsDao();
-const runningBuildsDao = require('./db/index').getRunningBuildsDao();
-const appCenterRequests = require('./api/appcenter');
-const githubRequests = require('./api/github');
+const appInstallationsDao = require('../Shared/db/index').getAppInstallationsDao();
+const runningBuildsDao = require('../Shared/db/index').getRunningBuildsDao();
+const appCenterRequests = require('../Shared/api/appcenter');
+const githubRequests = require('../Shared/api/github');
 const jwt = require('jsonwebtoken');
 
 const fs = require('fs');
 const path = require('path');
 const github_app_id = process.env['GITHUB_APP_ID'];
-const pub = fs.readFileSync(path.resolve(__dirname, './database-public.pem'));
-const pem = fs.readFileSync(path.resolve(__dirname, '../appcenter.pem'));
+const pub = fs.readFileSync(path.resolve(__dirname, '../Shared/database-public.pem'));
+const pem = fs.readFileSync(path.resolve(__dirname, '../Shared/appcenter-github-app.pem'));
 const app = githubRequests.createApp({
     id: github_app_id,
     cert: pem
 });
 
-module.exports = function (context, myTimer) {
+module.exports = function (context) {
     runningBuildsDao.getAllBuilds()
         .then(running_builds => {
             let build_promises = [];

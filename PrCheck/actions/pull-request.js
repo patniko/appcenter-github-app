@@ -1,18 +1,18 @@
 
 const path = require('path');
 const fs = require('fs');
-const appCenterRequests = require('../api/appcenter');
-const githubRequests = require('../api/github');
-const pem = fs.readFileSync(path.resolve(__dirname, '../appcenter.pem'));
+const appCenterRequests = require('../../Shared/api/appcenter');
+const githubRequests = require('../../Shared/api/github');
+const pem = fs.readFileSync(path.resolve(__dirname, '../../Shared/appcenter-github-app.pem'));
 const jwt = require('jsonwebtoken');
-const pub = fs.readFileSync(path.resolve(__dirname, '../database-public.pem'));
+const pub = fs.readFileSync(path.resolve(__dirname, '../../Shared/database-public.pem'));
 const github_app_id = process.env['GITHUB_APP_ID'];
 const app = githubRequests.createApp({
     id: github_app_id,
     cert: pem
 });
-const installationDao = require('../db/index').getAppInstallationsDao();
-const runningBuildsDao = require('../db/index').getRunningBuildsDao();
+const installationDao = require('../../Shared/db/index').getAppInstallationsDao();
+const runningBuildsDao = require('../../Shared/db/index').getRunningBuildsDao();
 
 module.exports = function (request, log) {
     try {
@@ -40,7 +40,7 @@ module.exports = function (request, log) {
                 });
             } else {
                 const head_repo = request.body.pull_request.head.repo.full_name;
-                return Promise.resolve(`Webhook was triggered by ${head_repo}, but there is no such kind configuratio for this repo. Ignored.`);
+                return Promise.resolve(`Webhook was triggered by ${head_repo}, but there is no such kind configuration for this repo. Ignored.`);
             }
         });
     } catch (error) {
@@ -51,7 +51,7 @@ module.exports = function (request, log) {
 const startRepoBuild = function (repo_config, request_body, log) {
     const action = request_body.action;
     const branch = request_body.ref || request_body.pull_request.head.ref;
-    const sha = request_body.ref ? "" : request_body.pull_request.head.sha;
+    const sha = request_body.ref ? '' : request_body.pull_request.head.sha;
     const target_branch = request_body.ref || request_body.pull_request.base.ref;
     const pull_request = request_body.ref ? 0 : request_body.pull_request.id;
     const installation_id = request_body.installation.id;
@@ -91,7 +91,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                     case 'user': appcenter_owner_type = 'users'; break;
                 }
                 const { branch_template, owner_name, app_name } = repo_config;
-                const repo_path = request_body.ref ? "" : request_body.pull_request.head.repo.full_name;
+                const repo_path = request_body.ref ? '' : request_body.pull_request.head.repo.full_name;
                 const createEnvVariablesOn = function (branch_config) {
                     const env_variables_map =
                         [
@@ -119,13 +119,13 @@ const startRepoBuild = function (repo_config, request_body, log) {
                         request_body.repository.full_name,
                         sha,
                         owner_name,
-                        "",
+                        '',
                         app_name,
                         branch,
                         -1,
                         installation_id,
                         app.status.STARTED,
-                        "https://appcenter.ms"
+                        'https://appcenter.ms'
                     );
                     let new_branch_config = false;
                     appCenterRequests.getBuildConfiguration(branch, appcenter_token, owner_name, app_name).then((branch_config) => {
@@ -188,11 +188,11 @@ const startRepoBuild = function (repo_config, request_body, log) {
                         reject(error);
                     });
                 } else if (action === 'closed' || (request_body.ref && request_body.ref_type === 'branch')) {
-                    log(action === 'closed' ? `PR closed, stopping builds.` : `Branch deleted, stopping builds.`);
+                    log(action === 'closed' ? 'PR closed, stopping builds.' : 'Branch deleted, stopping builds.');
                     appCenterRequests.getBuilds(branch, appcenter_token, owner_name, app_name).then((builds) => {
                         builds = JSON.parse(builds);
                         let build_id = -1;
-                        for (build of builds) {
+                        for (var build of builds) {
                             if (build.status == 'inProgress') {
                                 build_id = build.id;
                                 break;
@@ -204,7 +204,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                             resolve();
                         }
                     }).then(() => {
-                        resolve(`Build has been stopped.`);
+                        resolve('Build has been stopped.');
                     }).catch((error) => {
                         reject(error);
                     });

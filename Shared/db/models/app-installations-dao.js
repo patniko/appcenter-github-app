@@ -1,4 +1,5 @@
 const docdbUtils = require('./doc-db-utils');
+const trigger = require('../triggers/installation-id-trigger');
 
 function AppInstallationsDao(documentDBClient, databaseId, collectionId) {
     this.client = documentDBClient;
@@ -24,6 +25,7 @@ AppInstallationsDao.prototype = {
                         callback(err);
                     } else {
                         self.collection = coll;
+                        self.client.createTrigger(self.collection._self, trigger.uniqueConstraintTrigger(), {}, () => {});
                     }
                 });
             }
@@ -47,6 +49,25 @@ AppInstallationsDao.prototype = {
                     reject(err);
                 } else {
                     resolve(results[0]);
+                }
+            });
+        });
+    },
+
+    addItem: function (item) {
+        return new Promise((resolve, reject) => {
+            var self = this;
+            item.date = Date.now();
+            var options = { preTriggerInclude: 'installationIdTrigger' };
+            self.client.createDocument(self.collection._self, item, options, function (err, doc) {
+                if (err) {
+                    if (err.substatus == 409) {
+                        reject('There is already a document in a database with such an installation id. You may now leave this page.');
+                    } else {
+                        reject(err);
+                    }
+                } else {
+                    resolve(doc);
                 }
             });
         });

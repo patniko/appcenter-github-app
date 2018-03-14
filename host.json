@@ -1,3 +1,4 @@
 {
-    "functions": [ "PrCheck", "PrCheckSetup", "PrCheckStatus" ]
+    "functions": [ "PrCheck", "PrCheckSetup", "PrCheckStatus" ],
+    "watchDirectories": ["Shared"]
 }
