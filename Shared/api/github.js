@@ -70,7 +70,7 @@ module.exports = {
             });
         }
 
-        //Gets json config file from teh root of the user repository.
+        //Gets json config file from the root of the user repository.
         function getConfig(username, repo, id) {
             return asInstallation(id).then(github => {
                 return github.repos.getContent({ owner: username, repo: repo, path: 'appcenter-pr.json' });
@@ -90,7 +90,7 @@ module.exports = {
             });
         }
 
-        //Generates jwt signature for from the private key and GitHub app id.
+        //Generates jwt signature for GitHub app authentication from the private key and GitHub app id.
         function generateJwt(id, cert) {
             const payload = {
                 iat: Math.floor(new Date() / 1000),       // Issued at time
