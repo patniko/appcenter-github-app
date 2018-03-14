@@ -18,10 +18,10 @@ const processWebhookRequest = function (context, request) {
         const location = github.getIdentityRequestUrl(request.query.installation_id, request.headers.host + '/' + request.url);
         return identityRedirectScript(location);
     } else if (request.body) {
-        var params = request.body.split('&');
-        var gh_token;
-        var token;
-        for (var i = 0; i < params.length; i++) {
+        const params = request.body.split('&');
+        let gh_token;
+        let token;
+        for (let i = 0; i < params.length; i++) {
             if (params[i].startsWith('ghtoken')) {
                 gh_token = params[i].split('=')[1];
             }
@@ -37,7 +37,7 @@ const processWebhookRequest = function (context, request) {
         return new Promise((resolve, reject) => {
             github.getUserApps(gh_token).then((apps) => {
                 apps = JSON.parse(apps);
-                var github_app_installation;
+                let github_app_installation;
                 if (apps.installations && apps.installations.length) {
                     const github_app_id = process.env['GITHUB_APP_ID'];
                     github_app_installation = apps.installations.filter((installation) => installation.app_id == github_app_id)[0];
@@ -46,7 +46,7 @@ const processWebhookRequest = function (context, request) {
                     reject('Could not manage to store the token. No installation of our app on this account found.');
                 }
                 //encode token
-                var encoded_appcenter_token = jwt.sign({ token: token }, pem, { algorithm: 'RS256' });
+                const encoded_appcenter_token = jwt.sign({ token: token }, pem, { algorithm: 'RS256' });
                 const item = {
                     installation_id: github_app_installation.id,
                     app_center_token: encoded_appcenter_token
@@ -63,8 +63,8 @@ const processWebhookRequest = function (context, request) {
     } else if (request.query.code && request.query.state) {
         return github.getAccessToken(request.query.state, request.query.code, request.headers.host + '/' + request.url)
             .then((response) => {
-                var responses = response.split('&');
-                var token = responses.find(elem => elem.startsWith('access_token')).split('=')[1];
+                const responses = response.split('&');
+                const token = responses.find(elem => elem.startsWith('access_token')).split('=')[1];
                 return appCenterTokenForm(btoa(token));
             });
     }
