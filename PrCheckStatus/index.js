@@ -13,6 +13,7 @@ const app = githubRequests.createApp({
 });
 
 module.exports = function (context) {
+    //Getting all the running builds from the database and check them on AppCenter (whether they are completed).
     runningBuildsDao.getAllBuilds()
         .then(running_builds => {
             let build_promises = [];

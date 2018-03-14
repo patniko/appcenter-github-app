@@ -14,7 +14,9 @@ const runningBuildsDao = require('../../Shared/db/index').getRunningBuildsDao();
 
 module.exports = function (request, log) {
     try {
+        //Trying to retrieve AppCenter apps linked to this repo.
         return app.getConfig(request.body.repository.owner.login, request.body.repository.name, request.body.installation.id).then((config) => {
+            //If user chose to store appcenter-pr.json in his repo, we use it.
             config = JSON.parse(Buffer.from(config.data.content, 'base64'));
             if (config.appcenter_apps && config.appcenter_apps.length) {
                 let build_promises = [];
@@ -41,6 +43,8 @@ module.exports = function (request, log) {
                 return Promise.resolve(`Webhook was triggered by ${head_repo}, but there is no such kind configuration for this repo. Ignored.`);
             }
         }, () => {
+            //If user chose not to use appcenter-pr.json in his repo, we make a request to AppCenter and retrieve all user apps from there.
+            //We compare then the repo_url in their configs with the github repo url and, if they match, build those AppCenter apps.
             const test = function (url, gh_repo_owner, gh_repo_name) {
                 const regexp = new RegExp('.*' + gh_repo_owner + '.*' + gh_repo_name + '.*');
                 return regexp.test(url);
@@ -146,12 +150,14 @@ const startRepoBuild = function (repo_config, request_body, log) {
                         'https://appcenter.ms'
                     );
                     let new_branch_config = false;
+                    //Getting the build configuration of the branch in AppCenter.
                     appCenterRequests.getBuildConfiguration(branch, appcenter_token, owner_name, app_name).then((branch_config) => {
                         branch_config = JSON.parse(branch_config);
                         branch_config = createEnvVariablesOn(branch_config);
                         appCenterRequests.createPrCheckConfiguration(branch_config, branch, appcenter_token, owner_name, app_name);
                         return branch_config;
                     }, (error) => {
+                        //If there's no configuration for the selected branch, we use the one from the template_branch (most often it is master).
                         if (error.statusCode === 404) {
                             return appCenterRequests.getBuildConfiguration(branch_template, appcenter_token, owner_name, app_name)
                                 .then(created_branch_config => {
@@ -160,6 +166,8 @@ const startRepoBuild = function (repo_config, request_body, log) {
                                     created_branch_config = createEnvVariablesOn(created_branch_config);
                                     return appCenterRequests.createPrCheckConfiguration(created_branch_config, branch, appcenter_token, owner_name, app_name);
                                 }, (error) => {
+                                    //If there's no configuration on the template branch, we report this info back to GitHub as a status
+                                    //with the prompt to configure the branch in details.
                                     if (error.statusCode === 404) {
                                         app.reportGithubStatus(
                                             request_body.repository.full_name,
@@ -186,8 +194,10 @@ const startRepoBuild = function (repo_config, request_body, log) {
                             return Promise.reject(error);
                         }
                     }).then(() => {
+                        //Starting PR build in AppCenter.
                         return appCenterRequests.startPrCheck(branch, sha, appcenter_token, owner_name, app_name);
                     }).then((options) => {
+                        //Adding the running build to our database in order to check its completion via timer function.
                         options = JSON.parse(options);
                         const running_build = {
                             build_id: options.id,
@@ -219,6 +229,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                     });
                 } else if (action === 'closed' || (request_body.ref && request_body.ref_type === 'branch')) {
                     log(action === 'closed' ? 'PR closed, stopping builds.' : 'Branch deleted, stopping builds.');
+                    //Getting builds of this branch from AppCenter and stop the first that is running (inProgress).
                     appCenterRequests.getBuilds(branch, appcenter_token, owner_name, app_name).then((builds) => {
                         builds = JSON.parse(builds);
                         let build_id = -1;

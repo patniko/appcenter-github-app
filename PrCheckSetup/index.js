@@ -15,9 +15,12 @@ const atob = function (encoded) {
 
 const processWebhookRequest = function (context, request) {
     if (request.query.installation_id) {
+        //Redirect to GitHub authorization.
         const location = github.getIdentityRequestUrl(request.query.installation_id, request.headers.host + '/' + request.url);
         return identityRedirectScript(location);
     } else if (request.body) {
+        //User entered the AppCenter token on our page and sent it back via POST.
+        //To verify that this is not just a random user, we include github token value in this post request.
         const params = request.body.split('&');
         let gh_token;
         let token;
@@ -30,11 +33,14 @@ const processWebhookRequest = function (context, request) {
             }
         }
         if (!gh_token || !token) {
-            Promise.resolve('Could not manage to store the token. Not valid information sent.');
+            Promise.resolve('Could not manage to store the token. The information sent is not valid.');
         }
+        //Base64 decoding.
         gh_token = atob(gh_token);
         token = atob(token);
         return new Promise((resolve, reject) => {
+            //Using the github token, retrieving the list of all installed GitHub apps for this user. 
+            //Then find the app with our id and use it further.
             github.getUserApps(gh_token).then((apps) => {
                 apps = JSON.parse(apps);
                 let github_app_installation;
@@ -43,15 +49,16 @@ const processWebhookRequest = function (context, request) {
                     github_app_installation = apps.installations.filter((installation) => installation.app_id == github_app_id)[0];
                 }
                 if (!github_app_installation.id) {
-                    reject('Could not manage to store the token. No installation of our app on this account found.');
+                    reject('Could not manage to store the token. No installations of our app found on this account.');
                 }
-                //encode token
+                //Encode token in RSA before putting it to database.
                 const encoded_appcenter_token = jwt.sign({ token: token }, pem, { algorithm: 'RS256' });
                 const item = {
                     installation_id: github_app_installation.id,
                     app_center_token: encoded_appcenter_token
                 };
                 appInstallationsDao.addItem(item).then(() => {
+                    //If the AppCenter token is successfully stored, send the GitHub app installation id back to setup page.
                     resolve('installation=' + github_app_installation.id);
                 }).catch((err) => {
                     reject('Could not manage to store the token. ' + err || err.message || err.body);
@@ -61,10 +68,13 @@ const processWebhookRequest = function (context, request) {
             });
         });
     } else if (request.query.code && request.query.state) {
+        //2nd stage of Oauth2. Retrieving the github token.
         return github.getAccessToken(request.query.state, request.query.code, request.headers.host + '/' + request.url)
             .then((response) => {
                 const responses = response.split('&');
                 const token = responses.find(elem => elem.startsWith('access_token')).split('=')[1];
+                //When the github token is retrieved, we can safely send a setup page back to user. 
+                //It has the github token hidden in it.
                 return appCenterTokenForm(btoa(token));
             });
     }
