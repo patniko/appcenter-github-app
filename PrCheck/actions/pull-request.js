@@ -58,12 +58,8 @@ const startRepoBuild = function (repo_config, request_body, log) {
         let appcenter_token;
         installationDao.getAppCenterTokenFor(installation_id)
             .then((decoded_token) => {
-                return appCenterRequests.getApp(decoded_token, repo_config.owner_name, repo_config.app_name).then(
-                    (appcenter_app) => {
-                        resolve(appcenter_app);
-                    }, (error) => {
-                        reject(error);
-                    });
+                appcenter_token = decoded_token;
+                return appCenterRequests.getApp(decoded_token, repo_config.owner_name, repo_config.app_name)
             }).then((appcenter_app) => {
                 appcenter_app = JSON.parse(appcenter_app);
                 let appcenter_owner_type;

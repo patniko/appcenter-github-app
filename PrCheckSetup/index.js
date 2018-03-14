@@ -1,6 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-const sign = require('../Shared/jwt');
+const jwt = require('../Shared/jwt');
 const pem = fs.readFileSync(path.resolve(__dirname, '../Shared/database-private.pem'));
 const appCenterTokenForm = require('./actions/app-center-token-form');
 const identityRedirectScript = require('./actions/identity-redirect');
@@ -46,7 +46,7 @@ const processWebhookRequest = function (context, request) {
                     reject('Could not manage to store the token. No installation of our app on this account found.');
                 }
                 //encode token
-                const encoded_appcenter_token = sign({ token: token }, pem, { algorithm: 'RS256' });
+                const encoded_appcenter_token = jwt.sign({ token: token }, pem, { algorithm: 'RS256' });
                 const item = {
                     installation_id: github_app_installation.id,
                     app_center_token: encoded_appcenter_token
