@@ -30,6 +30,7 @@ RunningBuildsDao.prototype = {
         });
     },
 
+    //Gets id of the document with the specified owner name, app name and build id.
     getId: function (owner_name, app_name, build_id) {
         const self = this;
         return new Promise((resolve, reject) => {
@@ -60,6 +61,7 @@ RunningBuildsDao.prototype = {
         });
     },
 
+    //Removes information about running build as it is completed.
     removeRunningBuild: function (owner_name, app_name, build_id) {
         const self = this;
         return new Promise((resolve, reject) => {
@@ -88,6 +90,7 @@ RunningBuildsDao.prototype = {
         });
     },
 
+    //Gets document by its id.
     getItem: function (itemId) {
         const self = this;
         return new Promise((resolve, reject) => {
@@ -108,6 +111,7 @@ RunningBuildsDao.prototype = {
         });
     },
 
+    //Gets all the currently running builds.
     getAllBuilds: function () {
         const self = this;
         return new Promise((resolve, reject) => {
@@ -124,6 +128,7 @@ RunningBuildsDao.prototype = {
         });
     },
 
+    //Adds new running build to the database.
     addItem: function (item) {
         return new Promise((resolve, reject) => {
             const self = this;
