@@ -3,7 +3,7 @@
 
 1. Install the latest Azure Functions CLI on your system.
 
-```npm install -g azure-functions-core-tools@core```
+    ```npm install -g azure-functions-core-tools@core```
 
 1. Create a CosmosDB database in Azure Portal and update `local.settings.json` with valid `DB_ID`, `DB_HOST` and `DB_AUTH_KEY` values.
 
