@@ -2,12 +2,10 @@ const appInstallationsDao = require('../Shared/db/index').getAppInstallationsDao
 const runningBuildsDao = require('../Shared/db/index').getRunningBuildsDao();
 const appCenterRequests = require('../Shared/api/appcenter');
 const githubRequests = require('../Shared/api/github');
-const jwt = require('jsonwebtoken');
 
 const fs = require('fs');
 const path = require('path');
 const github_app_id = process.env['GITHUB_APP_ID'];
-const pub = fs.readFileSync(path.resolve(__dirname, '../Shared/database-public.pem'));
 const pem = fs.readFileSync(path.resolve(__dirname, '../Shared/appcenter-github-app.pem'));
 const app = githubRequests.createApp({
     id: github_app_id,
@@ -22,21 +20,7 @@ module.exports = function (context) {
                 let appcenter_token;
                 let build_completed = false;
                 build_promises.push(appInstallationsDao.getAppCenterTokenFor(running_build.installation_id)
-                    .then(result => {
-                        return new Promise((resolve, reject) => {
-                            jwt.verify(result.app_center_token, pub, { algorithms: ['RS256'] }, function (err, decoded) {
-                                if (err) {
-                                    reject(err);
-                                } else {
-                                    if (!decoded.token) {
-                                        reject('Could not decode token!');
-                                    } else {
-                                        resolve(decoded.token);
-                                    }
-                                }
-                            });
-                        });
-                    }).then((decoded_appcenter_token) => {
+                    .then((decoded_appcenter_token) => {
                         appcenter_token = decoded_appcenter_token;
                         return appCenterRequests.getBuild(running_build.build_id, appcenter_token, running_build.appcenter_owner_name, running_build.appcenter_app_name);
                     }).then(build => {

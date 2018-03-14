@@ -4,8 +4,6 @@ const fs = require('fs');
 const appCenterRequests = require('../../Shared/api/appcenter');
 const githubRequests = require('../../Shared/api/github');
 const pem = fs.readFileSync(path.resolve(__dirname, '../../Shared/appcenter-github-app.pem'));
-const jwt = require('jsonwebtoken');
-const pub = fs.readFileSync(path.resolve(__dirname, '../../Shared/database-public.pem'));
 const github_app_id = process.env['GITHUB_APP_ID'];
 const app = githubRequests.createApp({
     id: github_app_id,
@@ -59,30 +57,13 @@ const startRepoBuild = function (repo_config, request_body, log) {
     return new Promise((resolve, reject) => {
         let appcenter_token;
         installationDao.getAppCenterTokenFor(installation_id)
-            .then((result) => {
-                appcenter_token = result.app_center_token;
-                if (!appcenter_token) {
-                    reject('AppCenterToken could not be retrieved. Ignore.');
-                }
-                return new Promise((resolve, reject) => {
-                    jwt.verify(appcenter_token, pub, { algorithms: ['RS256'] }, function (err, decoded) {
-                        if (err) {
-                            reject(err);
-                        } else {
-                            if (!decoded.token) {
-                                reject('Could not decode token!');
-                            } else {
-                                appcenter_token = decoded.token;
-                                appCenterRequests.getApp(decoded.token, repo_config.owner_name, repo_config.app_name).then(
-                                    (appcenter_app) => {
-                                        resolve(appcenter_app);
-                                    }, (error) => {
-                                        reject(error);
-                                    });
-                            }
-                        }
+            .then((decoded_token) => {
+                return appCenterRequests.getApp(decoded_token, repo_config.owner_name, repo_config.app_name).then(
+                    (appcenter_app) => {
+                        resolve(appcenter_app);
+                    }, (error) => {
+                        reject(error);
                     });
-                });
             }).then((appcenter_app) => {
                 appcenter_app = JSON.parse(appcenter_app);
                 let appcenter_owner_type;
@@ -192,7 +173,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                     appCenterRequests.getBuilds(branch, appcenter_token, owner_name, app_name).then((builds) => {
                         builds = JSON.parse(builds);
                         let build_id = -1;
-                        for (var build of builds) {
+                        for (let build of builds) {
                             if (build.status == 'inProgress') {
                                 build_id = build.id;
                                 break;

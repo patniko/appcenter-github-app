@@ -1,6 +1,11 @@
 const docdbUtils = require('./doc-db-utils');
 const trigger = require('../triggers/installation-id-trigger');
 
+const fs = require('fs');
+const path = require('path');
+const jwt = require('jsonwebtoken');
+const pub = fs.readFileSync(path.resolve(__dirname, '../../database-public.pem'));
+
 function AppInstallationsDao(documentDBClient, databaseId, collectionId) {
     this.client = documentDBClient;
     this.databaseId = databaseId;
@@ -135,7 +140,17 @@ AppInstallationsDao.prototype = {
                 if (err) {
                     reject(err);
                 } else {
-                    resolve(results[0]);
+                    jwt.verify(results[0].app_center_token, pub, { algorithms: ['RS256'] }, function (err, decoded) {
+                        if (err) {
+                            reject(err);
+                        } else {
+                            if (!decoded.token) {
+                                reject('Could not decode token!');
+                            } else {
+                                resolve(decoded.token);
+                            }
+                        }
+                    });
                 }
             });
         });
