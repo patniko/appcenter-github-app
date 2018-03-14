@@ -1,0 +1,66 @@
+const octokit = require('@octokit/rest')();
+const jwt = require('jsonwebtoken');
+
+module.exports = {
+    createApp: function ({ id, cert, debug = false }) {
+
+        var status = {
+            STARTED: {state: "pending", description: "Build started..."},
+            PENDING: {state: "pending", description: "Build in App Center is in progress..."},
+            SUCCEEDED: {state: "success", description: "App Center build successfully created."},
+            FAILED: {state: "failure", description: "Errors occurred during App Center build."},
+            FUNCTION_FAILED: {state: "failure", description: "Errors occurred during executing Azure function."}
+        };
+
+        function asApp() {
+            octokit.authenticate({ type: 'integration', token: generateJwt(id, cert) });
+            // Return a promise to keep API consistent
+            return Promise.resolve(octokit);
+        }
+
+        // Authenticate as the given installation
+        function asInstallation(installationId) {
+            return createToken(installationId).then(res => {
+                octokit.authenticate({ type: 'token', token: res.data.token });
+                return octokit;
+            });
+        }
+
+        // https://developer.github.com/early-access/integrations/authentication/#as-an-installation
+        function createToken(installationId) {
+            return asApp().then(github => {
+                return github.apps.createInstallationToken({ installation_id: installationId });
+            });
+        }
+
+        function getConfig(username, repo, id) {
+            return asInstallation(id).then(github => {
+                return github.repos.getContent({ owner: username, repo: repo, path: 'appcenter-pr.json' });
+            });
+        }
+
+        function reportGithubStatus(repo_name, sha, appcenter_owner, owner_type, app, branch, buildNumber, id, status, target_url) {
+            return asInstallation(id).then(github => {
+                return github.repos.createStatus({ owner: repo_name.split('/')[0], repo: repo_name.split('/')[1], sha: sha,
+                    state: status.state,
+                    target_url: target_url || `https://appcenter.ms/${owner_type}/${appcenter_owner}/apps/${app}/build/branches/${branch}/builds/${buildNumber}`,
+                    description: status.description,
+                    context: `appcenter-ci/${app}`} );
+            });
+        }
+
+        // Internal - no need to exose this right now
+        function generateJwt(id, cert) {
+            const payload = {
+                iat: Math.floor(new Date() / 1000),       // Issued at time
+                exp: Math.floor(new Date() / 1000) + 60,  // JWT expiration time
+                iss: id                                   // Integration's GitHub id
+            };
+
+            // Sign with RSA SHA256
+            return jwt.sign(payload, cert, { algorithm: 'RS256' });
+        }
+
+        return { asApp, asInstallation, createToken, getConfig, reportGithubStatus, status };
+    }
+};

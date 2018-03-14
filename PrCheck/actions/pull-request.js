@@ -12,6 +12,7 @@ const app = githubRequests.createApp({
     cert: pem
 });
 const installationDao = require('../db/index').getAppInstallationsDao();
+const runningBuildsDao = require('../db/index').getRunningBuildsDao();
 
 module.exports = function (request, log) {
     try {
@@ -158,17 +159,28 @@ const startRepoBuild = function (repo_config, request_body, log) {
                         return appCenterRequests.startPrCheck(branch, sha, appcenter_token, owner_name, app_name);
                     }).then((options) => {
                         options = JSON.parse(options);
-                        return app.reportGithubStatus(
-                            request_body.repository.full_name,
-                            sha,
-                            owner_name,
-                            appcenter_owner_type,
-                            app_name,
-                            branch,
-                            options.buildNumber,
-                            installation_id,
-                            app.status.PENDING
-                        );
+                        const running_build = {
+                            build_id: options.id,
+                            installation_id: installation_id,
+                            appcenter_owner_type: appcenter_owner_type,
+                            appcenter_owner_name: owner_name,
+                            appcenter_app_name: app_name,
+                            repository_full_name: request_body.repository.full_name
+                        };
+                        return runningBuildsDao.addItem(running_build)
+                            .then(() => {
+                                return app.reportGithubStatus(
+                                    request_body.repository.full_name,
+                                    sha,
+                                    owner_name,
+                                    appcenter_owner_type,
+                                    app_name,
+                                    branch,
+                                    options.buildNumber,
+                                    installation_id,
+                                    app.status.PENDING
+                                );
+                            });
                     }).then(response => {
                         log(response);
                         resolve(`App Center app: "${app_name}". Started PR build for ${action} on ${new_branch_config ? 'existing' : 'new'} configuration...`);
