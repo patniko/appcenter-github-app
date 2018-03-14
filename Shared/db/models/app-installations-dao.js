@@ -37,6 +37,7 @@ AppInstallationsDao.prototype = {
         });
     },
 
+    //Gets id of the document with the specified installation id.
     getId: function (installationId) {
         const self = this;
 
@@ -59,10 +60,13 @@ AppInstallationsDao.prototype = {
         });
     },
 
+    //Adds new installation to the database.
     addItem: function (item) {
         return new Promise((resolve, reject) => {
             const self = this;
             item.date = Date.now();
+            
+            //Required configuration to set unique constraint trigger on installation id.
             const options = { preTriggerInclude: 'installationIdTrigger' };
             self.client.createDocument(self.collection._self, item, options, function (err, doc) {
                 if (err) {
@@ -78,6 +82,7 @@ AppInstallationsDao.prototype = {
         });
     },
 
+    //Removes information of the specified installation from the database.
     removeInstallation: function (installationId) {
         const self = this;
         return new Promise((resolve, reject) => {
@@ -106,6 +111,7 @@ AppInstallationsDao.prototype = {
         });
     },
 
+    //Gets document by its id.
     getItem: function (itemId) {
         const self = this;
         return new Promise((resolve, reject) => {
@@ -126,6 +132,7 @@ AppInstallationsDao.prototype = {
         });
     },
 
+    //Retrieves AppCenter token for the specified installation.
     getAppCenterTokenFor: function (installation_id) {
         const self = this;
         return new Promise((resolve, reject) => {
