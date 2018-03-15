@@ -181,15 +181,15 @@ const startRepoBuild = function (repo_config, request_body, log) {
                                             app.status.FUNCTION_FAILED,
                                             `https://appcenter.ms/${appcenter_owner_type}/${owner_name}/apps/${app_name}/build/branches/${branch_template}/configure`
                                         );
-                                        return Promise.reject('Error: 404 Not Found. Please check you have pasted valid appcenter owner, owner type and app name in config.json.');
+                                        return Promise.reject('Error: 404 Not Found. Please check that the application is linked to AppCenter or put appcenter-pr.json in the roots of the repo.');
                                     } else if (error.statusCode == 401) {
-                                        return Promise.reject('Error: 401 Unauthorized. Could not login to App Center. Please check you have pasted valid appcenter token in local.settings.json.');
+                                        return Promise.reject('Error: 401 Unauthorized. Could not login to App Center. Probably you have pasted not valid AppCenter token while setting up the application.');
                                     } else {
                                         return Promise.reject(error);
                                     }
                                 });
                         } else if (error.statusCode == 401) {
-                            return Promise.reject('Error: 401 Unauthorized. Could not login to AppCenter. Please check you have pasted valid appcenter token in local.settings.json.');
+                            return Promise.reject('Error: 401 Unauthorized. Could not login to AppCenter. Probably you have pasted not valid AppCenter token while setting up the application.');
                         } else {
                             return Promise.reject(error);
                         }

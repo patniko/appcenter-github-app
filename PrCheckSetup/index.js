@@ -45,7 +45,7 @@ const processWebhookRequest = function (context, request) {
         return new Promise((resolve, reject) => {
             let apps;
             //Using the github token, retrieving the list of all installed GitHub apps for this user. 
-            //Then find the app with our id and use it further.
+            //Then find the app with our id, choose the needed installation and use it further.
             github.getUserApps(gh_token).then((applications) => {
                 apps = applications;
                 return github.getCurrentUser(gh_token);
