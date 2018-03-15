@@ -1,0 +1,20 @@
+{
+    "IsEncrypted": false,
+    "Values": {
+        "AzureWebJobsStorage": "DefaultEndpointsProtocol=https;AccountName=rerelasefunctioaee1;AccountKey=5ZvdKKdm1UGbSxxYLqPggjAZuVsIr10HKWHWJJpodLRYp8y4vLiM/6ZuJvu7ZSr9ytWJ6hCaNZbRtxFXUxChPg==",
+        "distrauto_STORAGE": "DefaultEndpointsProtocol=https;AccountName=distrauto;AccountKey=nMDJlvCvSBqa4+wTrdFxECK13uHgNlrEVd+mRH2xpiLvShQ6B5oYecLlNIySwRvZn2JaZfjfYfsQCydBqV3q7g==",
+        "AzureWebJobsDashboard": "DefaultEndpointsProtocol=https;AccountName=rerelasefunctioaee1;AccountKey=5ZvdKKdm1UGbSxxYLqPggjAZuVsIr10HKWHWJJpodLRYp8y4vLiM/6ZuJvu7ZSr9ytWJ6hCaNZbRtxFXUxChPg==",
+        "FUNCTIONS_EXTENSION_VERSION": "~1",
+        "WEBSITE_CONTENTAZUREFILECONNECTIONSTRING": "DefaultEndpointsProtocol=https;AccountName=rerelasefunctioaee1;AccountKey=5ZvdKKdm1UGbSxxYLqPggjAZuVsIr10HKWHWJJpodLRYp8y4vLiM/6ZuJvu7ZSr9ytWJ6hCaNZbRtxFXUxChPg==",
+        "WEBSITE_CONTENTSHARE": "rerelasefunctionaee1",
+        "WEBSITE_NODE_DEFAULT_VERSION": "6.5.0",
+        "AzureWebJobsSecretStorageType": "disabled",
+        "GITHUB_APP_ID": -1,
+        "DB_HOST": "",
+        "DB_AUTH_KEY": "",
+        "DB_ID": "",
+        "GH_APP_CLIENT_ID":  "",
+        "GH_APP_CLIENT_SECRET": ""
+    },
+    "ConnectionStrings": {}
+}

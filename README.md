@@ -18,7 +18,7 @@
     - Run `func azure account set <sub_id>`dddd
 
 1. Create a GitHub app and configure webhook url to point to `PrCheck` function and Setup Url, authorization callback url to point to `PrCheckSetup` function.
-Under "Permissions and Webhooks" section, give access to "Repository metadata" and "Commit statuses". Subscribe to "Pull request" and "Delete" event.
+Under "Permissions and Webhooks" section, give access to "Repository metadata", "Commit statuses", "Pull requests" and "Repository contents". Subscribe to "Pull request" and "Delete" event.
 
 1. When you create an app on GitHub, you will be prompted to generate a private key for it. Download it and put it under `Shared` folder named as `appcenter-github-app.pem`.
 
