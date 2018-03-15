@@ -24,6 +24,7 @@ const processWebhookRequest = function (context, request) {
         const params = request.body.split('&');
         let gh_token;
         let token;
+        let state;
         for (let i = 0; i < params.length; i++) {
             if (params[i].startsWith('ghtoken')) {
                 gh_token = params[i].split('=')[1];
@@ -31,24 +32,35 @@ const processWebhookRequest = function (context, request) {
             if (params[i].startsWith('token')) {
                 token = params[i].split('=')[1];
             }
+            if (params[i].startsWith('state')) {
+                state = params[i].split('=')[1];
+            }
         }
-        if (!gh_token || !token) {
+        if (!gh_token || !token || !state) {
             Promise.resolve('Could not manage to store the token. The information sent is not valid.');
         }
         //Base64 decoding.
         gh_token = atob(gh_token);
         token = atob(token);
         return new Promise((resolve, reject) => {
+            let apps;
             //Using the github token, retrieving the list of all installed GitHub apps for this user. 
             //Then find the app with our id and use it further.
-            github.getUserApps(gh_token).then((apps) => {
+            github.getUserApps(gh_token).then((applications) => {
+                apps = applications;
+                return github.getCurrentUser(gh_token);
+            }).then((account) => {
+                account = JSON.parse(account);
+                let accountId = account.id;
                 apps = JSON.parse(apps);
                 let github_app_installation;
                 if (apps.installations && apps.installations.length) {
                     const github_app_id = process.env['GITHUB_APP_ID'];
-                    github_app_installation = apps.installations.filter((installation) => installation.app_id == github_app_id)[0];
+                    github_app_installation = apps.installations.filter((installation) => {
+                        return installation.app_id == github_app_id && installation.id == state && installation.account.id == accountId;
+                    })[0];
                 }
-                if (!github_app_installation.id) {
+                if (!github_app_installation || !github_app_installation.id) {
                     reject('Could not manage to store the token. No installations of our app found on this account.');
                 }
                 //Encode token in RSA before putting it to database.
@@ -75,7 +87,7 @@ const processWebhookRequest = function (context, request) {
                 const token = responses.find(elem => elem.startsWith('access_token')).split('=')[1];
                 //When the github token is retrieved, we can safely send a setup page back to user. 
                 //It has the github token hidden in it.
-                return appCenterTokenForm(btoa(token));
+                return appCenterTokenForm(btoa(token), request.query.state);
             });
     }
     return Promise.reject('Please post a valid webhook payload.');

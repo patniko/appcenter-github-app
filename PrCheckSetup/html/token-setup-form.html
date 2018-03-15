@@ -1,5 +1,6 @@
 <body>
     <input id="ghtoken" type="hidden" value="{0}">
+    <input id="state" type="hidden" value="{1}">
     <div class="wrapper">
         <header role="heading">
             <h3>PR Check Setup</h3>
@@ -90,6 +91,7 @@
     var link;
     const loader = document.getElementById('result');
     const github = document.getElementById('ghtoken');
+    const state = document.getElementById('state');
     const comment = document.getElementById('comment');
     const button_save = document.getElementById('wrapper_btn');
     const appcenter_token = document.getElementById('token');
@@ -98,14 +100,14 @@
             var gh_token = github.value;
             var token = document.getElementById('token').value;
             loader.textContent = "Please wait...";
-            send(btoa(token), gh_token);
+            send(btoa(token), gh_token, state.value);
         } 
     }
 
-    function send(token, gh_token) {
+    function send(token, gh_token, state) {
         var http = new XMLHttpRequest();
         var url = location.href;
-        var params = "token=" + token + "&ghtoken=" + gh_token;
+        var params = "token=" + token + "&ghtoken=" + gh_token + "&state=" + state;
         http.open("POST", url, true);
         http.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
 
