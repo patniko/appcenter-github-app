@@ -179,7 +179,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                                             -1,
                                             installation_id,
                                             app.status.FUNCTION_FAILED,
-                                            `https://appcenter.ms/${appcenter_owner_type}/${owner_name}/apps/${app_name}/build/branches/${branch}/configure`
+                                            `https://appcenter.ms/${appcenter_owner_type}/${owner_name}/apps/${app_name}/build/branches/${branch_template}/configure`
                                         );
                                         return Promise.reject('Error: 404 Not Found. Please check you have pasted valid appcenter owner, owner type and app name in config.json.');
                                     } else if (error.statusCode == 401) {
