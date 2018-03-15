@@ -143,23 +143,31 @@ AppInstallationsDao.prototype = {
                     value: installation_id
                 }]
             };
-            self.client.queryDocuments(self.collection._self, querySpec).toArray(function (err, results) {
-                if (err) {
-                    reject(err);
-                } else {
-                    jwt.verify(results[0].app_center_token, pub, { algorithms: ['RS256'] }, function (err, decoded) {
-                        if (err) {
-                            reject(err);
+            try {
+                self.client.queryDocuments(self.collection._self, querySpec).toArray(function (err, results) {
+                    if (err) {
+                        reject(err);
+                    } else {
+                        if (results.length) {
+                            jwt.verify(results[0].app_center_token, pub, { algorithms: ['RS256'] }, function (err, decoded) {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    if (!decoded.token) {
+                                        reject('Could not decode token!');
+                                    } else {
+                                        resolve(decoded.token);
+                                    }
+                                }
+                            });
                         } else {
-                            if (!decoded.token) {
-                                reject('Could not decode token!');
-                            } else {
-                                resolve(decoded.token);
-                            }
+                            reject(`installation_id=${installation_id} does not exist`);
                         }
-                    });
-                }
-            });
+                    }
+                });
+            } catch (error) {
+                reject(error);
+            }
         });
     }
 };
