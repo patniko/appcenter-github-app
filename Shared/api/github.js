@@ -37,6 +37,20 @@ module.exports = {
         };
         return request(options);
     },
+
+    //Gets the current user account information.
+    getCurrentUser: function(token) {
+        const options = {
+            url: `https://api.github.com/user?access_token=${token}`,
+            method: 'GET',
+            headers: { 
+                'Accept': 'application/vnd.github.machine-man-preview+json', 
+                'Content-Type': 'application/json',
+                'User-Agent': 'node.js'
+            }
+        };
+        return request(options);
+    },
     
     //Encapsulates GitHub logic accessed via GitHub app.
     createApp: function ({ id, cert}) {
