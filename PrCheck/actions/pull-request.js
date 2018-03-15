@@ -46,7 +46,7 @@ module.exports = function (request, log) {
             //If user chose not to use appcenter-pr.json in his repo, we make a request to AppCenter and retrieve all user apps from there.
             //We compare then the repo_url in their configs with the github repo url and, if they match, build those AppCenter apps.
             const test = function (url, gh_repo_owner, gh_repo_name) {
-                const regexp = new RegExp('.*' + gh_repo_owner + '.*' + gh_repo_name + '.*');
+                const regexp = new RegExp('.*' + gh_repo_owner + '.*' + gh_repo_name + '[.]git');
                 return regexp.test(url);
             };
             installationDao.getAppCenterTokenFor(request.body.installation.id)
