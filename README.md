@@ -15,7 +15,7 @@
 
     - Run `func azure account list`
     - Find an id of the MS_INT subscription
-    - Run `func azure account set <sub_id>`dddd
+    - Run `func azure account set <sub_id>`
 
 1. Create a GitHub app and configure webhook url to point to `PrCheck` function and Setup Url, authorization callback url to point to `PrCheckSetup` function.
 Under "Permissions and Webhooks" section, give access to "Repository metadata", "Commit statuses", "Pull requests" and "Repository contents". Subscribe to "Pull request" and "Delete" event.
