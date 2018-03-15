@@ -1,12 +1,5 @@
-const appInstallationsDao = require('../db/index').getAppInstallationsDao();
+const appInstallationsDao = require('../../Shared/db/index').getAppInstallationsDao();
 
 module.exports = function (installation_id) {
-    return new Promise((resolve, reject) => {
-        appInstallationsDao.removeInstallation(installation_id, function (err, result) {
-            if (err) {
-                reject(err);
-            }
-            resolve(result);
-        });
-    });
+    return appInstallationsDao.removeInstallation(installation_id);   
 };

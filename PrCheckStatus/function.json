@@ -1,0 +1,11 @@
+{
+    "bindings": [
+        {
+            "name": "PrCheckStatus",
+            "type": "timerTrigger",
+            "direction": "in",
+            "schedule": "*/30 * * * * *"
+        }
+    ],
+    "disabled": false
+}
