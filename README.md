@@ -46,6 +46,61 @@ Under "Permissions and Webhooks" section, give access to "Repository metadata", 
 
 1. Publish the changes to the Azure portal using `func azure functionapp publish AppCenterFunctions publish -i`.
 
+## KeyVault (almost done)
+
+Now all credential files are stored in sources and that is potential security problem. To avoid it we can store all of credentials in [Azure KeyVault](https://azure.microsoft.com/en-us/services/key-vault/) storage. Azure has [MSI](https://docs.microsoft.com/en-us/azure/active-directory/managed-service-identity/overview) feature which provide ability for Azure service to call another deployed Azure service using local authetication mechanism.
+
+### Setup
+1. Move all `.pem` files to KeyVault:
+    1. Create new KeyVault storage in portal.azure.com and open it.
+    2. Create new secret (`Secret->Generate/Import`) using this settings:
+        * **Upload options**:  Manual
+        * **Name**: appcenter-githup-app
+        * **Value**: _(copy-paste here content of `appcenter-githup-app.pem`)_
+        * **Enabled**: Yes
+    3. Repeat step 1.2 for `database-public.pem`, `database-private.pem` (remove `.pem` and use it for `Name` option).
+2. Grant `AppCenterFunctions` app access to KeyVault:
+    1. Open `Access Policies`.
+    2. Click `Add new`.
+    3. Click `Select Principal` and choose `AppCenterFunctions` app.
+    4. Click `Secret Permissions` and select `Get` under the `Secret Management Operations`.
+    5. Click `Ok`.
+3. Enable MSI for `AppCenterFunctions` app:
+    1. Click `Function Apps->AppCenterFunctions->Platform Features`.
+    3. Select `Managed Service Identity`.
+    2. Select `On` for `Register with Azure Active Directory` and return back.
+    3. Click on `Development Tools->Console`.
+    4. Enter `set` command in console and make sure there are two non-empty environment variables `MSI_ENDPOINT` and `MSI_SECRET`.
+4. *Configure `AppCenterFunctions` to use credentials from KeyVault (**in case if [TODO](#keyvault-todo) section has been already done**):
+    1. Click `Application Settings` and set these four environment variables:
+        * **KEYVAULT_URI** - this is public URI for KeyVault has already generated at 1.1 step. You can find here: `Home-><your-key-vault-storage>->Overview->DNS Name`.
+        * **APPCENTER_GITHUB_APP_KEY_VERSION**, **DATABASE_PUBLIC_KEY_VERSION**, **DATABASE_PRIVATE_KEY_VERSION** - these are secret version value for each of `appcenter-githup-app`, `database-public`, `database-private` respectively. You can find them here: 
+            * Open `Home-><your-key-vault-storage>->Secrets-><your-secret>-><select-secret-version>` and use the last part of `Secret Identifier` value as it. For example if `Secret Identifier` value is `https://mykeyvault.vault.azure.net/secrets/appcenter-githup-app/14dae147577e4916b8de3105159ffa95`, then secret value is `14dae147577e4916b8de3105159ffa95`.
+
+**NOTE:** If you don't want to use KeyVault, just don't set **KEYVAULT_URI** env variable for `AppCenterFunctions` app and it will be using local credentials files as it did before.
+
+### KeyVault TODO
+Those changes should be done in code to finally add KeyVault support:
+
+1. Replace all reads from local files for credentials like this
+
+```js
+const pem = fs.readFileSync(path.resolve(__dirname, '../../Shared/appcenter-github-app.pem'));
+```
+
+with respective methods calls from `credentials` package:
+
+```js
+const credentials = require('../correct/related/path/Shared/credentials');
+credentials.getAppcenterGithubApp().then((key) => {
+    ...
+}).catch((error) => {
+    ...
+})
+```
+
+Note that these methods return promises!
+
 # User getting started
 
 1. Install the github application following the link.
@@ -74,6 +129,8 @@ Under "Permissions and Webhooks" section, give access to "Repository metadata", 
 5. Commit those changes to your repo.
 
 6. Create a PR in your repo: when all the builds finish, you will see the updated status(es) in the PR saying whether the build(s) succeeded. To see the repsective builds in AppCenter, click on "Details".
+
+
 
 # Contributing
 
