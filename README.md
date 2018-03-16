@@ -59,25 +59,25 @@ Now all credential files are stored in sources and that is potential security pr
         * **Value**: _(copy-paste here content of `appcenter-githup-app.pem`)_
         * **Enabled**: Yes
     3. Repeat step 1.2 for `database-public.pem`, `database-private.pem` (remove `.pem` and use it for `Name` option).
-2. Grant `AppcenterFunctions` app access to KeyVault:
+2. Grant `AppCenterFunctions` app access to KeyVault:
     1. Open `Access Policies`.
     2. Click `Add new`.
-    3. Click `Select Principal` and choose `AppcenterFunctions` app.
+    3. Click `Select Principal` and choose `AppCenterFunctions` app.
     4. Click `Secret Permissions` and select `Get` under the `Secret Management Operations`.
     5. Click `Ok`.
-3. Enable MSI for `AppcenterFunctions` app:
-    1. Click `Function Apps->AppcenterFunctions->Platform Features`.
+3. Enable MSI for `AppCenterFunctions` app:
+    1. Click `Function Apps->AppCenterFunctions->Platform Features`.
     3. Select `Managed Service Identity`.
     2. Select `On` for `Register with Azure Active Directory` and return back.
     3. Click on `Development Tools->Console`.
     4. Enter `set` command in console and make sure there are two non-empty environment variables `MSI_ENDPOINT` and `MSI_SECRET`.
-4. *Configure `AppcenterFunctions` to use credentials from KeyVault (**in case if [TODO](#keyvault-todo) section has been already done**):
+4. *Configure `AppCenterFunctions` to use credentials from KeyVault (**in case if [TODO](#keyvault-todo) section has been already done**):
     1. Click `Application Settings` and set these four environment variables:
         * **KEYVAULT_URI** - this is public URI for KeyVault has already generated at 1.1 step. You can find here: `Home-><your-key-vault-storage>->Overview->DNS Name`.
-        * **APPCENTER_GITHUB_APP_KEY_VERSION**, **DATABASE_PUBLIC_KEY_VERSION**, **DATABASE_PRIVATE_KEY_VERSION** - these are secret version value for each of `appcenter-githup-app`, `database-public`, `database-private` respectively. You can find it here: 
-            * Open `Home-><your-key-vault-storage>->Secrets-><your-secret>-><select-secret-version>` and use last part of `Secret Identifier` value as it. For example if `Secret Identifier` value is `https://mykeyvault.vault.azure.net/secrets/appcenter-githup-app/14dae147577e4916b8de3105159ffa95` then secret value is `14dae147577e4916b8de3105159ffa95`.
+        * **APPCENTER_GITHUB_APP_KEY_VERSION**, **DATABASE_PUBLIC_KEY_VERSION**, **DATABASE_PRIVATE_KEY_VERSION** - these are secret version value for each of `appcenter-githup-app`, `database-public`, `database-private` respectively. You can find them here: 
+            * Open `Home-><your-key-vault-storage>->Secrets-><your-secret>-><select-secret-version>` and use the last part of `Secret Identifier` value as it. For example if `Secret Identifier` value is `https://mykeyvault.vault.azure.net/secrets/appcenter-githup-app/14dae147577e4916b8de3105159ffa95`, then secret value is `14dae147577e4916b8de3105159ffa95`.
 
-**NOTE:** If you don't want to use KeyVault, just don't set **KEYVAULT_URI** env variable for `AppcenterFunctions` app and it will be use local credentials files as it did before.
+**NOTE:** If you don't want to use KeyVault, just don't set **KEYVAULT_URI** env variable for `AppCenterFunctions` app and it will be using local credentials files as it did before.
 
 ### KeyVault TODO
 Those changes should be done in code to finally add KeyVault support:
@@ -99,7 +99,7 @@ credentials.getAppcenterGithubApp().then((key) => {
 })
 ```
 
-Be causes that those methods returns promises!.
+Note that these methods return promises!
 
 # User getting started
 
