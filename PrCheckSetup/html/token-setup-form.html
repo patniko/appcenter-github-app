@@ -118,8 +118,9 @@
                 if (http.responseText.startsWith('installation')) {
                     state = state.length < 6 ? "" : state;
                     let responses = http.responseText.split('&');
-                    const org = responses.find(elem => elem.startsWith('org')).split('=')[1];
+                    let org = responses.find(elem => elem.startsWith('org'));
                     if (org) {
+                        org = org.split('=')[1];
                         link = "https://github.com/organizations/" + org + "/settings/installations/" + state;
                     } else {
                         link = "https://github.com/settings/installations/" + state;
