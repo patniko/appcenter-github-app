@@ -120,7 +120,7 @@
                     let responses = http.responseText.split('&');
                     const org = responses.find(elem => elem.startsWith('org')).split('=')[1];
                     if (org) {
-                        link = "https://github.com/organizations/"+org+"/settings/installations/" + state;
+                        link = "https://github.com/organizations/" + org + "/settings/installations/" + state;
                     } else {
                         link = "https://github.com/settings/installations/" + state;
                     }
