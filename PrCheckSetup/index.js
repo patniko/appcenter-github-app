@@ -47,17 +47,12 @@ const processWebhookRequest = function (context, request) {
             //Using the github token, retrieving the list of all installed GitHub apps for this user. 
             //Then find the app with our id, choose the needed installation and use it further.
             github.getUserApps(gh_token).then((applications) => {
-                apps = applications;
-                return github.getCurrentUser(gh_token);
-            }).then((account) => {
-                account = JSON.parse(account);
-                let accountId = account.id;
-                apps = JSON.parse(apps);
+                apps = JSON.parse(applications);
                 let github_app_installation;
                 if (apps.installations && apps.installations.length) {
                     const github_app_id = process.env['GITHUB_APP_ID'];
                     github_app_installation = apps.installations.filter((installation) => {
-                        return installation.app_id == github_app_id && installation.id == state && installation.account.id == accountId;
+                        return installation.app_id == github_app_id && installation.id == state;
                     })[0];
                 }
                 if (!github_app_installation || !github_app_installation.id) {
@@ -66,12 +61,16 @@ const processWebhookRequest = function (context, request) {
                 //Encode token in RSA before putting it to database.
                 const encoded_appcenter_token = jwt.sign({ token: token }, pem, { algorithm: 'RS256' });
                 const item = {
-                    installation_id: github_app_installation.id,
+                    installation_id: state * 1,
                     app_center_token: encoded_appcenter_token
                 };
                 appInstallationsDao.addItem(item).then(() => {
                     //If the AppCenter token is successfully stored, send the GitHub app installation id back to setup page.
-                    resolve('installation=' + github_app_installation.id);
+                    if (github_app_installation.account.type == 'Organization') {
+                        resolve('installation=' + state + '&org=' + github_app_installation.account.login);
+                    } else {
+                        resolve('installation=' + state);
+                    }
                 }).catch((err) => {
                     reject('Could not manage to store the token. ' + err || err.message || err.body);
                 });
