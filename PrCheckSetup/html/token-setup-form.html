@@ -117,7 +117,13 @@
                 loader.textContent = "";
                 if (http.responseText.startsWith('installation')) {
                     state = state.length < 6 ? "" : state;
-                    link = "https://github.com/settings/installations/" + state;
+                    let responses = http.responseText.split('&');
+                    const org = responses.find(elem => elem.startsWith('org')).split('=')[1];
+                    if (org) {
+                        link = "https://github.com/organizations/" + org + "/settings/installations/" + state;
+                    } else {
+                        link = "https://github.com/settings/installations/" + state;
+                    }
                     comment.outerHTML = "<p id='comment'>Successfully stored the token. You now will be redirected to the installed app.</p>";
                     button_save.hidden = true;
                     appcenter_token.hidden = true;

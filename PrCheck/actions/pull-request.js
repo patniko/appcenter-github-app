@@ -5,7 +5,7 @@ const appCenterRequests = require('../../Shared/api/appcenter');
 const githubRequests = require('../../Shared/api/github');
 const pem = fs.readFileSync(path.resolve(__dirname, '../../Shared/appcenter-github-app.pem'));
 const github_app_id = process.env['GITHUB_APP_ID'];
-const app = githubRequests.createApp({
+const github_app = githubRequests.createApp({
     id: github_app_id,
     cert: pem
 });
@@ -15,7 +15,7 @@ const runningBuildsDao = require('../../Shared/db/index').getRunningBuildsDao();
 module.exports = function (request, log) {
     try {
         //Trying to retrieve AppCenter apps linked to this repo.
-        return app.getConfig(request.body.repository.owner.login, request.body.repository.name, request.body.installation.id).then((config) => {
+        return github_app.getConfig(request.body.repository.owner.login, request.body.repository.name, request.body.installation.id).then((config) => {
             //If user chose to store appcenter-pr.json in his repo, we use it.
             config = JSON.parse(Buffer.from(config.data.content, 'base64'));
             if (config.appcenter_apps && config.appcenter_apps.length) {
@@ -137,7 +137,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                 };
                 if (action === 'opened' || action === 'reopened' || action === 'synchronize') {
                     log(`PR #${pull_request} was ${action} on '${branch}' trying to merge into '${target_branch}'...`);
-                    app.reportGithubStatus(
+                    github_app.reportGithubStatus(
                         request_body.repository.full_name,
                         sha,
                         owner_name,
@@ -146,7 +146,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                         branch,
                         -1,
                         installation_id,
-                        app.status.STARTED,
+                        github_app.status.STARTED,
                         'https://appcenter.ms'
                     );
                     let new_branch_config = false;
@@ -169,7 +169,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                                     //If there's no configuration on the template branch, we report this info back to GitHub as a status
                                     //with the prompt to configure the branch in details.
                                     if (error.statusCode === 404) {
-                                        app.reportGithubStatus(
+                                        github_app.reportGithubStatus(
                                             request_body.repository.full_name,
                                             sha,
                                             owner_name,
@@ -178,7 +178,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                                             branch,
                                             -1,
                                             installation_id,
-                                            app.status.FUNCTION_FAILED,
+                                            github_app.status.FUNCTION_FAILED,
                                             `https://appcenter.ms/${appcenter_owner_type}/${owner_name}/apps/${app_name}/build/branches/${branch_template}/configure`
                                         );
                                         return Promise.reject('Error: 404 Not Found. Please check that the application is linked to AppCenter or put appcenter-pr.json in the roots of the repo.');
@@ -209,7 +209,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                         };
                         return runningBuildsDao.addItem(running_build)
                             .then(() => {
-                                return app.reportGithubStatus(
+                                return github_app.reportGithubStatus(
                                     request_body.repository.full_name,
                                     sha,
                                     owner_name,
@@ -218,7 +218,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                                     branch,
                                     options.buildNumber,
                                     installation_id,
-                                    app.status.PENDING
+                                    github_app.status.PENDING
                                 );
                             });
                     }).then(response => {
