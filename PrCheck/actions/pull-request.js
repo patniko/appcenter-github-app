@@ -148,7 +148,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                         installation_id,
                         github_app.status.STARTED,
                         'https://appcenter.ms'
-                    );
+                    ).catch((error) => log(error));
                     let new_branch_config = false;
                     //Getting the build configuration of the branch in AppCenter.
                     appCenterRequests.getBuildConfiguration(branch, appcenter_token, owner_name, app_name).then((branch_config) => {
@@ -180,7 +180,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                                             installation_id,
                                             github_app.status.FUNCTION_FAILED,
                                             `https://appcenter.ms/${appcenter_owner_type}/${owner_name}/apps/${app_name}/build/branches/${branch_template}/configure`
-                                        );
+                                        ).catch((error) => log(error));
                                         return Promise.reject('Error: 404 Not Found. Please check that the application is linked to AppCenter or put appcenter-pr.json in the roots of the repo.');
                                     } else if (error.statusCode == 401) {
                                         return Promise.reject('Error: 401 Unauthorized. Could not login to App Center. Probably you have pasted not valid AppCenter token while setting up the application.');
@@ -220,7 +220,7 @@ const startRepoBuild = function (repo_config, request_body, log) {
                                     installation_id,
                                     github_app.status.PENDING
                                 );
-                            });
+                            }).catch((error) => log(error));
                     }).then(response => {
                         log(response);
                         resolve(`App Center app: "${app_name}". Started PR build for ${action} on ${new_branch_config ? 'existing' : 'new'} configuration...`);

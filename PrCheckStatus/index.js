@@ -43,7 +43,7 @@ module.exports = function (context) {
                                 build.id,
                                 running_build.installation_id,
                                 build_status
-                            );
+                            ).catch((error) => context.log(error));
                         }
                         return Promise.resolve();
                     }).then(() => {
