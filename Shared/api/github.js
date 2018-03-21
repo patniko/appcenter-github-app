@@ -98,7 +98,7 @@ module.exports = {
             return asInstallation(id).then(github => {
                 return github.repos.createStatus({ owner: repo_name.split('/')[0], repo: repo_name.split('/')[1], sha: sha,
                     state: status.state,
-                    target_url: target_url || `https://appcenter.ms/${owner_type}/${appcenter_owner}/apps/${app}/build/branches/${branch}/builds/${buildNumber}`,
+                    target_url: target_url || `https://appcenter.ms/${owner_type}/${appcenter_owner}/apps/${app}/build/branches/${encodeURIComponent(branch)}/builds/${buildNumber}`,
                     description: status.description,
                     context: `appcenter-ci/${app}`} );
             });
