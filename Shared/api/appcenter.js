@@ -39,6 +39,9 @@ module.exports = {
         if(config.xamarin) {
             config.isSimBuild = true;
         }
+        if(config.toolsets.xcode) {
+            config.toolsets.xcode.automaticSigning = false;
+        }
 
         const options = BuildUrl(`/branches/${encodeURIComponent(branch)}/config`, token, owner, app);
         Object.assign(options, { method: 'POST', body: JSON.stringify(config) });
