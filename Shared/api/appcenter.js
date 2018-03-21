@@ -24,7 +24,7 @@ module.exports = {
     },
     //Gets the build configuration of the specified branch.
     getBuildConfiguration: function(branch, token, owner, app) {
-        const endpoint = `/branches/${encodeURI(branch)}/config`;
+        const endpoint = `/branches/${encodeURIComponent(branch)}/config`;
         const options = BuildUrl(endpoint, token, owner, app);
         return request(options);
     },
@@ -40,7 +40,7 @@ module.exports = {
             config.isSimBuild = true;
         }
 
-        const options = BuildUrl(`/branches/${encodeURI(branch)}/config`, token, owner, app);
+        const options = BuildUrl(`/branches/${encodeURIComponent(branch)}/config`, token, owner, app);
         Object.assign(options, { method: 'POST', body: JSON.stringify(config) });
         return request(options);
     },
@@ -48,19 +48,19 @@ module.exports = {
     startPrCheck: function(branch, sha, token, owner, app) {
         const payload = { sourceVersion: sha };
 
-        const options = BuildUrl(`/branches/${encodeURI(branch)}/builds`, token, owner, app);
+        const options = BuildUrl(`/branches/${encodeURIComponent(branch)}/builds`, token, owner, app);
         Object.assign(options, { method: 'POST', body: JSON.stringify(payload) });
         return request(options);
     },
     //Deletes AppCenter branch build configuration.
     deletePrCheckConfiguration: function(branch, token, owner, app) {
-        const options = BuildUrl(`/branches/${encodeURI(branch)}/config`, token, owner, app);
+        const options = BuildUrl(`/branches/${encodeURIComponent(branch)}/config`, token, owner, app);
         Object.assign(options, { method: 'DELETE' });
         return request(options);
     },
     //Gets the specified branch builds.
     getBuilds: function(branch, token, owner, app) {
-        const options = BuildUrl(`/branches/${encodeURI(branch)}/builds`, token, owner, app);
+        const options = BuildUrl(`/branches/${encodeURIComponent(branch)}/builds`, token, owner, app);
         Object.assign(options, { method: 'GET' });
         return request(options);
     },
