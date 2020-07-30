@@ -1,0 +1,10 @@
+---
+  tutors: 
+    - 
+      username: "patniko"
+      timezone: "PST"
+      startTime: 8
+      endTime: 18
+      excludeWeekends: true
+      rate: 50
+      donateTime: true
