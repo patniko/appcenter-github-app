@@ -1,7 +1,7 @@
 experts: 
 - handle: 'patniko'
   email: ''
-  timezone: 'America/Los_Angeles'
+  timeZone: 'America/Los_Angeles'
   startTime: '8:00'
   endTime: '18:00'
   excludeWeekends: true
