@@ -1,3 +1,4 @@
+<a href="https://githubexpertsapi.azurewebsites.net/site/scheduler/patniko/appcenter-github-app">Schedule time with an Expert!</a>
 
 # Developer getting started
 
